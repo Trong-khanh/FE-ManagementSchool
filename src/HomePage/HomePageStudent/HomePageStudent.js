@@ -60,7 +60,7 @@ export default function HomePage() {
               <SearchIcon />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Tìm kiếm…"
+              placeholder="Find…"
               inputProps={{ 'aria-label': 'search' }}
             />
           </Search>

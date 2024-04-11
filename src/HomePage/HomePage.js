@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import React, {useState} from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -48,7 +47,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function HomePage() {
-  const [responseMessage, setResponseMessage] = useState(''); // State to store the response message
 
   return (
     <div>
@@ -69,8 +67,6 @@ export default function HomePage() {
           </Search>
           <Button color="inherit" component={Link} to="/login" sx={{ ml: 2.5 }}>LogIn</Button>
         </Toolbar>
-        {/* Display the response message if it exists */}
-        {responseMessage && <div>{responseMessage}</div>}
       </AppBar>
       {/* Phần nội dung chính của trang web */}
       <main>
