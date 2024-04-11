@@ -41,26 +41,19 @@ userApi.interceptors.response.use(
     }
 );
 
-const adminMessage = async () => {
+const addStudent = async () => {
     try {
-        const response = await userApi.get(`/Admin/only-admin `)
-        console.log("User data: ",response.data)
+        const response = await userApi.post(`/Admin/AddStudent`);
+
+        console.log("User data: ", response.data);
         return response.data;
     } catch (error) {
+        // Xử lý lỗi nếu có
         console.error('Error:', error);
         throw error;
     }
 };
-const updateUserProfile = async (userId, formData) => {
-    try {
-        const response = await userApi.post(`/User/updateUserProfile/${userId}`, formData);
-        return response.data;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
-}
 
 
 
-export {adminMessage,updateUserProfile};
+export {addStudent};

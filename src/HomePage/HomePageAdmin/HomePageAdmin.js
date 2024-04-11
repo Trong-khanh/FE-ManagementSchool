@@ -67,7 +67,6 @@ export default function HomePage() {
           <Button color="inherit">Lớp Học</Button>
           <Button color="inherit">Giáo viên</Button>
           <Button color="inherit">Học sinh</Button>
-          <Button color="inherit">Đăng nhập</Button>        
         </Toolbar>
       </AppBar>
       {/* Phần nội dung chính của trang web */}

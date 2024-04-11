@@ -7,7 +7,6 @@ import InputBase from '@mui/material/InputBase';
 import Button from '@mui/material/Button';
 import { styled, alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
-import {adminMessage} from "../AdminAPI";
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -51,15 +50,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 export default function HomePage() {
   const [responseMessage, setResponseMessage] = useState(''); // State to store the response message
 
-  const handleAdminAccessCheck = async () => {
-    try {
-      const response = await adminMessage(); // Call the function to check admin access
-      setResponseMessage(response.message); // Set the response message in the state
-    } catch (error) {
-      console.log(error);
-      setResponseMessage('Error or Access Denied'); // Handle error or unauthorized access
-    }
-  };
   return (
     <div>
       <AppBar position="static" sx={{
@@ -79,10 +69,6 @@ export default function HomePage() {
           </Search>
           <Button color="inherit" component={Link} to="/login" sx={{ ml: 2.5 }}>LogIn</Button>
         </Toolbar>
-        <Button variant="contained" color="primary" onClick={handleAdminAccessCheck}>
-          Check Admin Access
-        </Button>
-
         {/* Display the response message if it exists */}
         {responseMessage && <div>{responseMessage}</div>}
       </AppBar>

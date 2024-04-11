@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import HomePage from './HomePage/HomePage'; // Adjust the path as necessary
-import SignInSide from './Authentication/Login/SignInSide'; // Adjust the path as necessary
+import HomePage from './HomePage/HomePage';
+import SignInSide from './Authentication/Login/SignInSide';
+import HomePageAdmin from  './HomePage/HomePageAdmin/HomePageAdmin'
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<SignInSide />} />
+          <Route path="/admin" element={<HomePageAdmin />} />
       </Routes>
     </BrowserRouter>
   );
