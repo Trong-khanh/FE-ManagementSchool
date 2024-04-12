@@ -106,9 +106,19 @@ function AdminStudentPage() {
         setStudents(updatedStudents);
     };
 
-    const toggleStudentList = () => {
-        setShowStudentList(!showStudentList);
+    const toggleStudentList = async () => {
+        if (!showStudentList.length) {
+            try {
+                const studentData = await GetAllStudent();
+                setShowStudentList(studentData);
+            } catch (error) {
+                console.log("error fetch student", error);
+            }
+        } else {
+            setShowStudentList([]);
+        }
     };
+
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
