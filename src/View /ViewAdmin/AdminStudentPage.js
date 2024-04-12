@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
 import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, InputBase } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
@@ -6,6 +6,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled, alpha } from '@mui/material/styles';
+import { addStudent,GetAllStudent } from "../../AdminAPI";
+
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -53,26 +55,44 @@ function AdminStudentPage() {
     const [anchorEl, setAnchorEl] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
 
+    useEffect(()=>{
+        const fetchListStudent = async () =>{
+            try{
+                const studentData = await GetAllStudent();
+                console.log("list student: ",studentData)
+                setShowStudentList(studentData)
+            }catch (error){
+                console.log("error fetch student", error)
+            }
+        }
+        fetchListStudent()
+    },[])
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        if (editingIndex === null) {
-            setStudents([...students, formData]);
-        } else {
-            const updatedStudents = [...students];
-            updatedStudents[editingIndex] = formData;
-            setStudents(updatedStudents);
-            setEditingIndex(null);
+
+        try {
+            if (editingIndex === null) {
+                await addStudent(formData); // Gọi API để thêm sinh viên mới
+            } else {
+                const updatedStudents = [...students];
+                updatedStudents[editingIndex] = formData;
+                setStudents(updatedStudents);
+                setEditingIndex(null);
+            }
+            setFormData({
+                fullName: '',
+                address: '',
+                className: '',
+                parentName: ''
+            });
+        } catch (error) {
+            console.error('Error adding student:', error);
         }
-        setFormData({
-            fullName: '',
-            address: '',
-            className: '',
-            parentName: ''
-        });
     };
 
     const handleEdit = (index) => {
@@ -102,9 +122,6 @@ function AdminStudentPage() {
         setSearchQuery(event.target.value);
     };
 
-    const filteredStudents = students.filter((student) =>
-        student.fullName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
 
     return (
         <div>
@@ -206,18 +223,40 @@ function AdminStudentPage() {
                             placeholder="Enter parent name"
                         />
                     </div>
-                    <button type="submit" style={{ padding: '10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', backgroundImage: 'linear-gradient(to right, #43a047, #66bb6a)' }}>
+                    <button
+                        type="submit"
+                        style={{
+                            padding: '10px',
+                            backgroundColor: '#4CAF50',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            backgroundImage: 'linear-gradient(to right, #43a047, #66bb6a)'
+                        }}
+                    >
                         {editingIndex !== null ? 'Save' : 'Add Student'}
                     </button>
                 </form>
-                <button onClick={toggleStudentList} style={{ padding: '10px', marginTop: '10px', backgroundColor: '#673ab7', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
+                <button
+                    onClick={toggleStudentList}
+                    style={{
+                        padding: '10px',
+                        marginTop: '10px',
+                        backgroundColor: '#673ab7',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '5px',
+                        cursor: 'pointer'
+                    }}
+                >
                     {showStudentList ? 'Hide Student List' : 'View All Students'}
                 </button>
             </div>
 
             {showStudentList && (
                 <div style={{ width: '800px', margin: '20px auto', overflowY: 'auto', maxHeight: '400px' }}>
-                    <h2>Thông tin học sinh</h2>
+                    <h2>Information Of Student</h2>
                     <table style={{ borderCollapse: 'collapse', width: '100%' }}>
                         <thead>
                         <tr style={{
@@ -233,12 +272,12 @@ function AdminStudentPage() {
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredStudents.map((student, index) => (
+                        {showStudentList.map((student, index) => (
                             <tr key={index}>
                                 <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.fullName}</td>
                                 <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.address}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.className}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.parentName}</td>
+                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.class.className}</td>
+                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.parent.parentName}</td>
                                 <td style={{ border: '1px solid #dddddd', textAlign: 'center', padding: '8px' }}>
                                     <IconButton onClick={() => handleEdit(index)}>
                                         <EditIcon />

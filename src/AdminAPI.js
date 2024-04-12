@@ -8,13 +8,16 @@ const authApi = axios.create({
         'Content-Type': 'application/json'
     }
 });
+
 const userApi = axios.create({
     baseURL: baseLink,
     headers: {
-        'Content-Type': 'multipart/form-data'
+        'Content-Type': 'application/json'
     }
 });
+
 let refreshingTokenPromise = null;
+
 userApi.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -41,19 +44,25 @@ userApi.interceptors.response.use(
     }
 );
 
-const addStudent = async () => {
+const addStudent = async (studentData) => {
     try {
-        const response = await userApi.post(`/Admin/AddStudent`);
-
+        const response = await userApi.post(`/Admin/AddStudent`, studentData);
         console.log("User data: ", response.data);
         return response.data;
     } catch (error) {
-        // Xử lý lỗi nếu có
         console.error('Error:', error);
         throw error;
     }
 };
 
+const GetAllStudent = async() =>{
+    try {
+        const response = await userApi.get(`/Admin/getaAllStudents`);
+        return response.data
+    }catch (error){
+        console.error('Error', error);
+        throw error;
+    }
+}
 
-
-export {addStudent};
+export { addStudent,GetAllStudent };
