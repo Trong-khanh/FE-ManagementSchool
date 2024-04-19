@@ -6,7 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled, alpha } from '@mui/material/styles';
-import { addStudent,GetAllStudent } from "../../AdminAPI";
+import {addStudent,GetAllStudent,UpdateStudent} from "../../AdminAPI";
 
 
 const Search = styled('div')(({ theme }) => ({
@@ -74,15 +74,18 @@ function AdminStudentPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log('handleSubmit called, editingIndex:', editingIndex);
 
         try {
             if (editingIndex === null) {
-                await addStudent(formData); // Gọi API để thêm sinh viên mới
+                await addStudent(formData);
             } else {
-                const updatedStudents = [...students];
-                updatedStudents[editingIndex] = formData;
-                setStudents(updatedStudents);
-                setEditingIndex(null);
+                const updatedStudent = await UpdateStudent(showStudentList[editingIndex].id, formData);
+                const updatedStudents = [...showStudentList];
+                updatedStudents[editingIndex] = updatedStudent;
+                setShowStudentList(updatedStudents);
+                setEditingIndex(null); // Reset editingIndex to null
+                console.log('Student updated successfully');
             }
             setFormData({
                 fullName: '',
@@ -91,12 +94,18 @@ function AdminStudentPage() {
                 parentName: ''
             });
         } catch (error) {
-            console.error('Error adding student:', error);
+            console.error('Error adding/updating student:', error);
         }
     };
 
     const handleEdit = (index) => {
-        setFormData(students[index]);
+        const student = showStudentList[index];
+        setFormData({
+            fullName: student.fullName,
+            address: student.address,
+            className: student.class.className,
+            parentName: student.parent.parentName
+        });
         setEditingIndex(index);
     };
 
@@ -245,6 +254,7 @@ function AdminStudentPage() {
                             backgroundImage: 'linear-gradient(to right, #43a047, #66bb6a)'
                         }}
                     >
+                        {console.log('editingIndex:', editingIndex)}
                         {editingIndex !== null ? 'Save' : 'Add Student'}
                     </button>
                 </form>

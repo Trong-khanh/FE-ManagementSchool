@@ -65,4 +65,15 @@ const GetAllStudent = async() =>{
     }
 }
 
-export { addStudent,GetAllStudent };
+const UpdateStudent = async (studentId, updatedStudentData) => {
+    try {
+        const response = await userApi.put(`/Admin/UpdateStudent/${studentId}`, updatedStudentData);
+        console.log("Student updated successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error updating student:', error);
+        throw error;
+    }
+};
+
+export { addStudent,GetAllStudent,UpdateStudent };
