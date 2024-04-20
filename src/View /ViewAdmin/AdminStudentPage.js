@@ -74,40 +74,61 @@ function AdminStudentPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('handleSubmit called, editingIndex:', editingIndex);
+        console.log('Editing index:', editingIndex);
+        console.log('Form data:', formData);
 
         try {
             if (editingIndex === null) {
+                // Thêm học sinh mới
                 await addStudent(formData);
             } else {
-                const updatedStudent = await UpdateStudent(showStudentList[editingIndex].id, formData);
-                const updatedStudents = [...showStudentList];
-                updatedStudents[editingIndex] = updatedStudent;
-                setShowStudentList(updatedStudents);
-                setEditingIndex(null); // Reset editingIndex to null
-                console.log('Student updated successfully');
+                // Cập nhật học sinh hiện tại
+                if (formData.studentId) {
+                    const updatedStudent = await UpdateStudent(formData.studentId, formData);
+                    const updatedStudents = [...showStudentList];
+                    const updateIndex = updatedStudents.findIndex(student => student.studentId === formData.studentId);
+                    if (updateIndex !== -1) {
+                        updatedStudents[updateIndex] = updatedStudent;
+                        setShowStudentList(updatedStudents); // Cập nhật danh sách học sinh
+                    } else {
+                        throw new Error('Unable to find student in list with ID: ' + formData.studentId);
+                    }
+                    console.log('Student updated successfully');
+                } else {
+                    console.error('Invalid student ID');
+                }
             }
-            setFormData({
-                fullName: '',
-                address: '',
-                className: '',
-                parentName: ''
-            });
+            // Reload student list to reflect changes
+            const studentData = await GetAllStudent();
+            setShowStudentList(studentData);
+            setEditingIndex(null); // Reset editingIndex to null
         } catch (error) {
-            console.error('Error adding/updating student:', error);
+            console.error('Error details:', error.response || error.message);
         }
+
+        // Reset form data
+        setFormData({
+            fullName: '',
+            address: '',
+            className: '',
+            parentName: ''
+        });
     };
+
+
 
     const handleEdit = (index) => {
         const student = showStudentList[index];
         setFormData({
+            studentId: student.studentId,
             fullName: student.fullName,
             address: student.address,
-            className: student.class.className,
-            parentName: student.parent.parentName
+            className: student.class?.className || 'No Class Assigned',
+            parentName: student.parent?.parentName || 'No Parent Assigned'
         });
         setEditingIndex(index);
     };
+
 
     const handleDelete = (index) => {
         const updatedStudents = [...students];
@@ -296,8 +317,8 @@ function AdminStudentPage() {
                             <tr key={index}>
                                 <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.fullName}</td>
                                 <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.address}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.class.className}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.parent.parentName}</td>
+                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.class?.className || 'No Class Assigned'}</td>
+                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.parent?.parentName || 'No Parent Assigned'}</td>
                                 <td style={{ border: '1px solid #dddddd', textAlign: 'center', padding: '8px' }}>
                                     <IconButton onClick={() => handleEdit(index)}>
                                         <EditIcon />
