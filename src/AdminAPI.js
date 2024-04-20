@@ -76,4 +76,15 @@ const UpdateStudent = async (studentId, updatedStudentData) => {
     }
 };
 
-export { addStudent,GetAllStudent,UpdateStudent };
+const DeleteStudent = async (studentId, DeleteStudentData) => {
+    try {
+        const response = await userApi.delete(`/Admin/DeleteStudent/${studentId}`, DeleteStudentData);
+        console.log("Student delete successfully:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error delete student:', error);
+        throw error;
+    }
+};
+
+export { addStudent,GetAllStudent,UpdateStudent,DeleteStudent };

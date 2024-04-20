@@ -1,12 +1,23 @@
 import React, {useEffect, useState} from 'react';
 import { Link } from 'react-router-dom';
-import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, InputBase } from '@mui/material';
+import {
+    AppBar,
+    Toolbar,
+    Typography,
+    IconButton,
+    Menu,
+    MenuItem,
+    InputBase,
+    DialogActions,
+    DialogContentText, DialogContent, Dialog, DialogTitle
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
 import { styled, alpha } from '@mui/material/styles';
-import {addStudent,GetAllStudent,UpdateStudent} from "../../AdminAPI";
+import {addStudent,GetAllStudent,UpdateStudent,DeleteStudent} from "../../AdminAPI";
+import Button from "@mui/material/Button";
 
 
 const Search = styled('div')(({ theme }) => ({
@@ -43,7 +54,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 function AdminStudentPage() {
-    const [students, setStudents] = useState([]);
     const [formData, setFormData] = useState({
         fullName: '',
         address: '',
@@ -54,6 +64,8 @@ function AdminStudentPage() {
     const [showStudentList, setShowStudentList] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [deletingIndex, setDeletingIndex] = useState(null);
 
     useEffect(()=>{
         const fetchListStudent = async () =>{
@@ -115,8 +127,6 @@ function AdminStudentPage() {
         });
     };
 
-
-
     const handleEdit = (index) => {
         const student = showStudentList[index];
         setFormData({
@@ -129,11 +139,35 @@ function AdminStudentPage() {
         setEditingIndex(index);
     };
 
+    // Hàm mở dialog xác nhận xoá
+    const handleOpenConfirmDialog = (index) => {
+        setDeletingIndex(index);
+        setOpenConfirmDialog(true);
+    };
 
-    const handleDelete = (index) => {
-        const updatedStudents = [...students];
-        updatedStudents.splice(index, 1);
-        setStudents(updatedStudents);
+// Hàm đóng dialog xác nhận
+    const handleCloseConfirmDialog = () => {
+        setOpenConfirmDialog(false);
+        setDeletingIndex(null);
+    };
+
+// Hàm xoá học sinh thực tế
+    const handleConfirmDelete = async () => {
+        if (deletingIndex === null) return;
+
+        try {
+            const studentId = showStudentList[deletingIndex].studentId;
+            await DeleteStudent(studentId); // Gọi API xoá học sinh
+            const updatedStudents = [...showStudentList];
+            updatedStudents.splice(deletingIndex, 1);
+            setShowStudentList(updatedStudents); // Cập nhật danh sách học sinh sau khi xoá
+            console.log('Student deleted successfully');
+        } catch (error) {
+            console.error('Error deleting student:', error);
+            alert('Error deleting student: ' + (error.response || error.message));
+        }
+
+        handleCloseConfirmDialog(); // Đóng dialog sau khi hoàn thành
     };
 
     const toggleStudentList = async () => {
@@ -323,9 +357,10 @@ function AdminStudentPage() {
                                     <IconButton onClick={() => handleEdit(index)}>
                                         <EditIcon />
                                     </IconButton>
-                                    <IconButton onClick={() => handleDelete(index)}>
+                                    <IconButton onClick={() => handleOpenConfirmDialog(index)}>
                                         <DeleteIcon />
                                     </IconButton>
+
                                 </td>
                             </tr>
                         ))}
@@ -333,6 +368,22 @@ function AdminStudentPage() {
                     </table>
                 </div>
             )}
+            <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
+                <DialogTitle>{"Confirm Delete"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this student? This action cannot be undone.
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseConfirmDialog} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirmDelete} color="primary" autoFocus>
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 }
