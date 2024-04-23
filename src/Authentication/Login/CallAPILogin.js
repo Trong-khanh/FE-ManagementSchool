@@ -66,18 +66,25 @@ const login = async (credentials) => {
     }
 };
 
-const register = async (userData) => {
+const register = async (userData, role) => {
     try {
-        const response = await authApi.post('/Account/register', userData);
+        const response = await authApi.post(`/Authenticate?role=${encodeURIComponent(role)}`, userData);
+        console.log('User registered successfully:', response.data);
         return response.data;
     } catch (error) {
-        console.error('Error during registration:', error);
+        console.error('Error during registration:', error.response || error.message || error);
+        // Check if the error has a response property and log it
         if (error.response) {
+            console.error('Error response data:', error.response.data);
+            console.error('Error response status:', error.response.status);
+            console.error('Error response headers:', error.response.headers);
             throw new Error(error.response?.data?.message || "An error occurred during the registration process.");
         } else {
+            // Handle network or other errors not related to HTTP
             throw new Error("A network or unknown error occurred during the registration process.");
         }
     }
 };
+
 
 export { login, register, userApi };

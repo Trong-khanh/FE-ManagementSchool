@@ -12,9 +12,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import {register} from "../Login/CallAPILogin";
 
 const defaultTheme = createTheme();
 
@@ -24,18 +23,25 @@ export default function SignUp() {
   const [showRoleSelect, setShowRoleSelect] = useState(false);
   const [userName, setUserName] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const userData = {
-      userName: userName || googleUser?.name || data.get('userName'),
-      email: data.get('email') || googleUser?.email,
+      userName: data.get('userName'),
+      email: data.get('email'),
       password: data.get('password'),
-      role: role,
     };
+    const selectedRole = data.get('role'); // Ensure you have a 'role' input in your form.
 
-    console.log(userData);
-    // Gọi API đăng ký tại đây với userData
+    try {
+      // Call the register API with userData and selectedRole
+      const response = await register(userData, selectedRole);
+      console.log('User registered successfully:', response);
+      // Handle successful registration (e.g., redirect to login or dashboard)
+    } catch (error) {
+      console.error('Error registering user:', error);
+      // Handle registration errors (e.g., display error message to user)
+    }
   };
 
   const handleRoleChange = (event) => {
@@ -59,7 +65,7 @@ export default function SignUp() {
   };
 
   return (
-      <GoogleOAuthProvider clientId="862905097670-678pkbir60a8v0jk4v75ua6nsu4j3k40.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
         <ThemeProvider theme={defaultTheme}>
           <Container component="main" maxWidth="xs">
             <CssBaseline />
@@ -78,82 +84,59 @@ export default function SignUp() {
                 Sign up
               </Typography>
               <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                {!googleUser && (
-                    <Grid container spacing={2}>
-                      <Grid item xs={12}>
-                        <TextField
-                            autoComplete="userName"
-                            name="userName"
-                            required
-                            fullWidth
-                            id="userName"
-                            label="User Name"
-                            autoFocus
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                            required
-                            fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                            required
-                            fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="new-password"
-                        />
-                      </Grid>
-                    </Grid>
-                )}
-                {showRoleSelect && (
-                    <>
-                      <Grid item xs={12}>
-                        <TextField
-                            autoComplete="userName"
-                            name="userName"
-                            required
-                            fullWidth
-                            id="userName"
-                            label="User Name"
-                            value={userName}
-                            onChange={handleUserNameChange}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Select
-                            labelId="role-select-label"
-                            id="role"
-                            name="role"
-                            value={role}
-                            onChange={handleRoleChange}
-                            fullWidth
-                            displayEmpty
-                        >
-                          <MenuItem value="" disabled>
-                            Choose Role
-                          </MenuItem>
-                          <MenuItem value="admin">Admin</MenuItem>
-                          <MenuItem value="student">Student</MenuItem>
-                          <MenuItem value="teacher">Teacher</MenuItem>
-                          <MenuItem value="parent">Parent</MenuItem>
-                        </Select>
-                      </Grid>
-                    </>
-                )}
-                <Grid item xs={12}>
-                  <FormControlLabel
-                      control={<Checkbox value="allowExtraEmails" color="primary" />}
-                      label="I want to receive inspiration, marketing promotions and updates via email."
-                  />
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField
+                        autoComplete="userName"
+                        name="userName"
+                        required
+                        fullWidth
+                        id="userName"
+                        label="User Name"
+                        autoFocus
+                        value={userName}
+                        onChange={handleUserNameChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                        required
+                        fullWidth
+                        id="email"
+                        label="Email Address"
+                        name="email"
+                        autoComplete="email"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="new-password"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                        required
+                        fullWidth
+                        id="role"
+                        label="Role"
+                        name="role"
+                        autoComplete="role"
+                        value={role}
+                        onChange={handleRoleChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                        control={<Checkbox value="allowExtraEmails" color="primary" />}
+                        label="I want to receive inspiration, marketing promotions and updates via email."
+                    />
+                  </Grid>
                 </Grid>
                 <Button
                     type="submit"
@@ -163,13 +146,15 @@ export default function SignUp() {
                 >
                   Sign Up
                 </Button>
-                <GoogleLogin
-                    onSuccess={handleGoogleResponse}
-                    onFailure={handleGoogleFailure}
-                />
+                {showRoleSelect && (
+                    <GoogleLogin
+                        onSuccess={handleGoogleResponse}
+                        onFailure={handleGoogleFailure}
+                    />
+                )}
                 <Grid container justifyContent="flex-end">
                   <Grid item>
-                    <Link href="Login" variant="body2">
+                    <Link href="/Login" variant="body2">
                       Already have an account? Sign in
                     </Link>
                   </Grid>
