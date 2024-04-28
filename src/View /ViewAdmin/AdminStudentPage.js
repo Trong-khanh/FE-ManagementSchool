@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import {
     AppBar,
     Toolbar,
@@ -15,12 +15,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
-import { styled, alpha } from '@mui/material/styles';
-import {addStudent,GetAllStudent,UpdateStudent,DeleteStudent} from "../../AdminAPI";
+import {styled, alpha} from '@mui/material/styles';
+import {addStudent, GetAllStudent, UpdateStudent, DeleteStudent} from "../../AdminAPI";
 import Button from "@mui/material/Button";
 
 
-const Search = styled('div')(({ theme }) => ({
+const Search = styled('div')(({theme}) => ({
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
     backgroundColor: alpha(theme.palette.common.white, 0.15),
@@ -36,7 +36,7 @@ const Search = styled('div')(({ theme }) => ({
     },
 }));
 
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
+const StyledInputBase = styled(InputBase)(({theme}) => ({
     color: 'inherit',
     '& .MuiInputBase-input': {
         padding: theme.spacing(1, 1, 1, 0),
@@ -67,21 +67,21 @@ function AdminStudentPage() {
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [deletingIndex, setDeletingIndex] = useState(null);
 
-    useEffect(()=>{
-        const fetchListStudent = async () =>{
-            try{
+    useEffect(() => {
+        const fetchListStudent = async () => {
+            try {
                 const studentData = await GetAllStudent();
-                console.log("list student: ",studentData)
+                console.log("list student: ", studentData)
                 setShowStudentList(studentData)
-            }catch (error){
+            } catch (error) {
                 console.log("error fetch student", error)
             }
         }
         fetchListStudent()
-    },[])
+    }, [])
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData({...formData, [e.target.name]: e.target.value});
     };
 
     const handleSubmit = async (e) => {
@@ -102,10 +102,10 @@ function AdminStudentPage() {
                     if (updateIndex !== -1) {
                         updatedStudents[updateIndex] = updatedStudent;
                         setShowStudentList(updatedStudents); // Cập nhật danh sách học sinh
+                        console.log('Student updated successfully');
                     } else {
                         throw new Error('Unable to find student in list with ID: ' + formData.studentId);
                     }
-                    console.log('Student updated successfully');
                 } else {
                     console.error('Invalid student ID');
                 }
@@ -127,6 +127,7 @@ function AdminStudentPage() {
         });
     };
 
+
     const handleEdit = (index) => {
         const student = showStudentList[index];
         setFormData({
@@ -134,10 +135,12 @@ function AdminStudentPage() {
             fullName: student.fullName,
             address: student.address,
             className: student.class?.className || 'No Class Assigned',
-            parentName: student.parent?.parentName || 'No Parent Assigned'
+            parentName: student.parent?.parentName || 'No Parent Assigned',
+            academicYear: student.academicYear
         });
         setEditingIndex(index);
     };
+
 
     // Hàm mở dialog xác nhận xoá
     const handleOpenConfirmDialog = (index) => {
@@ -199,19 +202,19 @@ function AdminStudentPage() {
 
     return (
         <div>
-            <AppBar position="static" sx={{ background: 'linear-gradient(to left top, #fc6c8f, #ff2ced, #ffb86c)' }}>
+            <AppBar position="static" sx={{background: 'linear-gradient(to left top, #fc6c8f, #ff2ced, #ffb86c)'}}>
                 <Toolbar>
-                    <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
                         Student Management
                     </Typography>
                     <Search>
                         <StyledInputBase
                             placeholder="Find…"
-                            inputProps={{ 'aria-label': 'search' }}
+                            inputProps={{'aria-label': 'search'}}
                             value={searchQuery}
                             onChange={handleSearchChange}
                         />
-                        <SearchIcon />
+                        <SearchIcon/>
                     </Search>
                     <IconButton
                         aria-label="more"
@@ -220,7 +223,7 @@ function AdminStudentPage() {
                         onClick={handleClick}
                         color="inherit"
                     >
-                        <MoreVertIcon />
+                        <MoreVertIcon/>
                     </IconButton>
                     <Menu
                         id="menu"
@@ -228,73 +231,92 @@ function AdminStudentPage() {
                         open={Boolean(anchorEl)}
                         onClose={handleClose}
                     >
-                        <Link to="/admin/class" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link to="/admin/class" style={{textDecoration: 'none', color: 'inherit'}}>
                             <MenuItem onClick={handleClose}>Class</MenuItem>
                         </Link>
-                        <Link to="/admin/parent" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link to="/admin/parent" style={{textDecoration: 'none', color: 'inherit'}}>
                             <MenuItem onClick={handleClose}>Parent</MenuItem>
                         </Link>
-                        <Link to="/admin/teacher" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link to="/admin/teacher" style={{textDecoration: 'none', color: 'inherit'}}>
                             <MenuItem onClick={handleClose}>Teacher</MenuItem>
                         </Link>
-                        <Link to="/admin/semester" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link to="/admin/semester" style={{textDecoration: 'none', color: 'inherit'}}>
                             <MenuItem onClick={handleClose}>Semester</MenuItem>
                         </Link>
-                        <Link to="/admin/course-fee" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Link to="/admin/course-fee" style={{textDecoration: 'none', color: 'inherit'}}>
                             <MenuItem onClick={handleClose}>Course Fee</MenuItem>
                         </Link>
                     </Menu>
                 </Toolbar>
             </AppBar>
-            <div style={{ width: '400px', margin: '20px auto', padding: '20px', border: '1px solid #ccc', borderRadius: '5px', background: 'linear-gradient(to right top, #82aaff 50%, #3d6ef7' }}>
-                <h2 style={{ textAlign: 'center' }}>Add Student</h2>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ marginBottom: '10px' }}>
-                        <label htmlFor="fullName" style={{ fontWeight: 'bold' }}>Full Name:</label>
+            <div style={{
+                width: '400px',
+                margin: '20px auto',
+                padding: '20px',
+                border: '1px solid #ccc',
+                borderRadius: '5px',
+                background: 'linear-gradient(to right top, #82aaff 50%, #3d6ef7'
+            }}>
+                <h2 style={{textAlign: 'center'}}>Add Student</h2>
+                <form onSubmit={handleSubmit} style={{display: 'flex', flexDirection: 'column'}}>
+                    <div style={{marginBottom: '10px'}}>
+                        <label htmlFor="fullName" style={{fontWeight: 'bold'}}>Full Name:</label>
                         <input
                             type="text"
                             id="fullName"
                             name="fullName"
                             value={formData.fullName}
                             onChange={handleChange}
-                            style={{ width: '100%', padding: '5px' }}
+                            style={{width: '100%', padding: '5px'}}
                             placeholder="Enter full name"
                         />
                     </div>
-                    <div style={{ marginBottom: '10px' }}>
-                        <label htmlFor="address" style={{ fontWeight: 'bold' }}>Address:</label>
+                    <div style={{marginBottom: '10px'}}>
+                        <label htmlFor="address" style={{fontWeight: 'bold'}}>Address:</label>
                         <input
                             type="text"
                             id="address"
                             name="address"
                             value={formData.address}
                             onChange={handleChange}
-                            style={{ width: '100%', padding: '5px' }}
+                            style={{width: '100%', padding: '5px'}}
                             placeholder="Enter address"
                         />
                     </div>
-                    <div style={{ marginBottom: '10px' }}>
-                        <label htmlFor="className" style={{ fontWeight: 'bold' }}>Class Name:</label>
+                    <div style={{marginBottom: '10px'}}>
+                        <label htmlFor="className" style={{fontWeight: 'bold'}}>Class Name:</label>
                         <input
                             type="text"
                             id="className"
                             name="className"
                             value={formData.className}
                             onChange={handleChange}
-                            style={{ width: '100%', padding: '5px' }}
+                            style={{width: '100%', padding: '5px'}}
                             placeholder="Enter class name"
                         />
                     </div>
-                    <div style={{ marginBottom: '20px' }}>
-                        <label htmlFor="parentName" style={{ fontWeight: 'bold' }}>Parent Name:</label>
+                    <div style={{marginBottom: '20px'}}>
+                        <label htmlFor="parentName" style={{fontWeight: 'bold'}}>Parent Name:</label>
                         <input
                             type="text"
                             id="parentName"
                             name="parentName"
                             value={formData.parentName}
                             onChange={handleChange}
-                            style={{ width: '100%', padding: '5px' }}
+                            style={{width: '100%', padding: '5px'}}
                             placeholder="Enter parent name"
+                        />
+                    </div>
+                    <div style={{marginBottom: '10px'}}>
+                        <label htmlFor="academicYear" style={{fontWeight: 'bold'}}>Academic Year:</label>
+                        <input
+                            type="text"
+                            id="academicYear"
+                            name="academicYear"
+                            value={formData.academicYear}
+                            onChange={handleChange}
+                            style={{width: '100%', padding: '5px'}}
+                            placeholder="Enter academic year"
                         />
                     </div>
                     <button
@@ -330,37 +352,38 @@ function AdminStudentPage() {
             </div>
 
             {showStudentList && (
-                <div style={{ width: '800px', margin: '20px auto', overflowY: 'auto', maxHeight: '400px' }}>
+                <div style={{width: '800px', margin: '20px auto', overflowY: 'auto', maxHeight: '400px'}}>
                     <h2>Information Of Student</h2>
-                    <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                    <table style={{borderCollapse: 'collapse', width: '100%'}}>
                         <thead>
                         <tr style={{
                             backgroundColor: '#f2f2f2',
                             background: 'linear-gradient(to right, #0099ff, #00cc99)',
                             color: 'white'
                         }}>
-                            <th style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>Full Name</th>
-                            <th style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>Address</th>
-                            <th style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>Class Name</th>
-                            <th style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>Parent Name</th>
-                            <th style={{ border: '1px solid #dddddd', textAlign: 'center', padding: '8px' }}>Actions</th>
+                            <th style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>Full Name</th>
+                            <th style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>Address</th>
+                            <th style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>Class Name</th>
+                            <th style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>Parent Name</th>
+                            <th style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>Academic Year</th>
+                            <th style={{border: '1px solid #dddddd', textAlign: 'center', padding: '8px'}}>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         {showStudentList.map((student, index) => (
                             <tr key={index}>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.fullName}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.address}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.class?.className || 'No Class Assigned'}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'left', padding: '8px' }}>{student.parent?.parentName || 'No Parent Assigned'}</td>
-                                <td style={{ border: '1px solid #dddddd', textAlign: 'center', padding: '8px' }}>
+                                <td style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>{student.fullName}</td>
+                                <td style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>{student.address}</td>
+                                <td style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>{student.class?.className || 'No Class Assigned'}</td>
+                                <td style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>{student.parent?.parentName || 'No Parent Assigned'}</td>
+                                <td style={{border: '1px solid #dddddd', textAlign: 'left', padding: '8px'}}>{student.academicYear}</td>
+                                <td style={{border: '1px solid #dddddd', textAlign: 'center', padding: '8px'}}>
                                     <IconButton onClick={() => handleEdit(index)}>
-                                        <EditIcon />
+                                        <EditIcon/>
                                     </IconButton>
                                     <IconButton onClick={() => handleOpenConfirmDialog(index)}>
-                                        <DeleteIcon />
+                                        <DeleteIcon/>
                                     </IconButton>
-
                                 </td>
                             </tr>
                         ))}
@@ -368,6 +391,7 @@ function AdminStudentPage() {
                     </table>
                 </div>
             )}
+
             <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
                 <DialogTitle>{"Confirm Delete"}</DialogTitle>
                 <DialogContent>
