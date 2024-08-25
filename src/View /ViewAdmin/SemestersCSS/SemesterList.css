@@ -1,0 +1,32 @@
+.semester-container {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+.semester-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.semester-table th, .semester-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.semester-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.semester-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.semester-table tr:hover {
+    background-color: #f1f1f1;
+}

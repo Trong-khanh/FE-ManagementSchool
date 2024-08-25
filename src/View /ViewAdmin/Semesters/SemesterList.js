@@ -2,18 +2,28 @@ import React from 'react';
 
 const SemesterList = ({ semesters }) => {
     return (
-        <div>
+        <div className="semester-container">
             <h2>Semester List</h2>
-            <ul>
-                {semesters.map((semester, index) => (
-                    <li key={index}>
-                        <p>Name: {semester.name}</p>
-                        <p>Start Date: {semester.startDate}</p>
-                        <p>End Date: {semester.endDate}</p>
-                        <p>Academic Year: {semester.academicYear}</p>
-                    </li>
-                ))}
-            </ul>
+            <table className="semester-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Academic Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {semesters.map((semester, index) => (
+                        <tr key={index}>
+                            <td>{semester.name}</td>
+                            <td>{semester.startDate}</td>
+                            <td>{semester.endDate}</td>
+                            <td>{semester.academicYear}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
     );
 };
