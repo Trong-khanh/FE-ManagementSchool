@@ -19,7 +19,7 @@ const defaultTheme = createTheme();
 
 export default function SignUp() {
   const [role, setRole] = useState('');
-  const [googleUser, setGoogleUser] = useState(null);
+  const [ setGoogleUser] = useState(null);
   const [showRoleSelect, setShowRoleSelect] = useState(false);
   const [userName, setUserName] = useState('');
 
