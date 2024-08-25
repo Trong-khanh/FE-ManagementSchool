@@ -1,9 +1,8 @@
 import React from 'react';
 
-const SemesterList = ({ semesters }) => {
+const SemesterList = ({ semesters, onEdit, onDelete }) => {
     return (
         <div className="semester-container">
-            <h2>Semester List</h2>
             <table className="semester-table">
                 <thead>
                     <tr>
@@ -11,6 +10,7 @@ const SemesterList = ({ semesters }) => {
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Academic Year</th>
+                        <th>Actions</th> 
                     </tr>
                 </thead>
                 <tbody>
@@ -20,6 +20,10 @@ const SemesterList = ({ semesters }) => {
                             <td>{semester.startDate}</td>
                             <td>{semester.endDate}</td>
                             <td>{semester.academicYear}</td>
+                            <td>
+                                <button onClick={() => onEdit(semester)} className="edit-button">Edit</button>
+                                <button onClick={() => onDelete(semester)} className="delete-button">Delete</button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>

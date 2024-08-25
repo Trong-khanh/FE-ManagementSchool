@@ -12,7 +12,7 @@
 
 .form-container {
     flex: 1;
-    max-width: 400px;
+    max-width: 30%; /* Giảm max-width */
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
@@ -20,17 +20,13 @@
 }
 
 .list-container {
-    flex: 1;
-    max-width: 600px;
+    flex: 2; /* Tăng tỷ lệ flex từ 1 lên 2 hoặc cao hơn nếu cần */
+    max-width: none; /* Bỏ giới hạn max-width */
+    width: 70%; /* Hoặc một giá trị phù hợp để bảng rộng hơn */
     border: 1px solid #ddd;
     border-radius: 8px;
     padding: 20px;
     background-color: #f9f9f9;
-}
-
-h2 {
-    font-size: 1.5em;
-    margin-bottom: 20px;
 }
 
 form {
@@ -66,10 +62,6 @@ button {
     cursor: pointer;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
 ul {
     list-style-type: none;
     padding: 0;
@@ -83,8 +75,6 @@ li {
 .semester-container {
     margin-top: 20px;
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
     background-color: #ffffff;
 }
 
@@ -111,4 +101,78 @@ li {
 
 .semester-table tr:hover {
     background-color: #f1f1f1;
+
+    /* Style cho container của bảng */
+.semester-container {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+/* Style cho bảng học kỳ */
+.semester-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+/* Style cho các ô tiêu đề và ô dữ liệu trong bảng */
+.semester-table th, .semester-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+/* Style cho tiêu đề của bảng */
+.semester-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+/* Style cho hàng chẵn của bảng */
+.semester-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* Style cho hàng khi hover */
+.semester-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+/* Style cho các nút hành động */
+.edit-button, .delete-button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+    margin-right: 5px; 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Style cho nút Edit */
+.edit-button {
+    background-color: #28a745; 
+}
+
+/* Style cho nút Edit khi hover */
+.edit-button:hover {
+    background-color: #28a745; 
+}
+
+/* Style cho nút Delete */
+.delete-button {
+    background-color: #dc3545; 
+}
+
+/* Style cho nút Delete khi hover */
+.delete-button:hover {
+    background-color: #dc3545; 
+}
+
 }
