@@ -31,25 +31,28 @@ const SemesterForm = ({ onAddSemester, editingSemester }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <div>
-                <label>Name</label>
-                <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
-            </div>
-            <div>
-                <label>Start Date</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-            </div>
-            <div>
-                <label>End Date</label>
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
-            </div>
-            <div>
-                <label>Academic Year</label>
-                <input type="text" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} required />
-            </div>
-            <button type="submit">{editingSemester ? 'Update Semester' : 'Add Semester'}</button>
-        </form>
+        <div className="semester-form-container">
+            <h2>{editingSemester ? 'Edit Semester' : 'Add Semester'}</h2>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Name</label>
+                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required />
+                </div>
+                <div>
+                    <label>Start Date</label>
+                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
+                </div>
+                <div>
+                    <label>End Date</label>
+                    <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
+                </div>
+                <div>
+                    <label>Academic Year</label>
+                    <input type="text" value={academicYear} onChange={(e) => setAcademicYear(e.target.value)} required />
+                </div>
+                <button type="submit" className="submit-button">{editingSemester ? 'Update Semester' : 'Add Semester'}</button>
+            </form>
+        </div>
     );
 };
 

@@ -19,7 +19,7 @@ const AdminSemesterPage = () => {
             setSemesters(semesters.map(s =>
                 s.id === editingSemester.id ? { ...editingSemester, ...semester } : s
             ));
-            setEditingSemester(null); // Clear editing state after update
+            setEditingSemester(null); 
         } else {
             // Add new semester
             setSemesters([...semesters, { ...semester, id: Date.now() }]);
