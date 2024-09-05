@@ -1,28 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SemesterForm from './SemesterForm';
 import SemesterList from './SemesterList';
 import NavBar from '../../NavBar';
 import '../SemestersCSS/AdminSemesterPage.css';
+import { addSemester, getAllSemesters, updateSemester, deleteSemester } from '../../../API /CRUDSemesterAPI';
 
 const AdminSemesterPage = () => {
     const [semesters, setSemesters] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [editingSemester, setEditingSemester] = useState(null);
 
+    // Fetch all semesters on component mount
+    useEffect(() => {
+        const fetchSemesters = async () => {
+            try {
+                const data = await getAllSemesters();
+                setSemesters(data);
+            } catch (error) {
+                console.error("Error fetching semesters:", error);
+            }
+        };
+        fetchSemesters();
+    }, []);
+
     const handleSearchChange = (event) => {
         setSearchQuery(event.target.value);
     };
 
-    const addSemester = (semester) => {
-        if (editingSemester) {
-            // Update existing semester
-            setSemesters(semesters.map(s =>
-                s.id === editingSemester.id ? { ...editingSemester, ...semester } : s
-            ));
-            setEditingSemester(null); 
-        } else {
-            // Add new semester
-            setSemesters([...semesters, { ...semester, id: Date.now() }]);
+    const handleAddOrUpdateSemester = async (semester) => {
+        try {
+            if (editingSemester) {
+                // Update semester
+                const updatedSemester = await updateSemester(editingSemester.id, semester);
+                setSemesters(semesters.map(s => s.id === editingSemester.id ? updatedSemester : s));
+                setEditingSemester(null);  // Clear the form after editing
+            } else {
+                // Add new semester
+                const newSemester = await addSemester(semester);
+                setSemesters([...semesters, newSemester]);
+            }
+        } catch (error) {
+            console.error("Error adding/updating semester:", error);
         }
     };
 
@@ -30,9 +48,14 @@ const AdminSemesterPage = () => {
         setEditingSemester(semester);
     };
 
-    const handleDelete = (semester) => {
+    const handleDelete = async (semester) => {
         if (window.confirm(`Are you sure you want to delete ${semester.name}?`)) {
-            setSemesters(semesters.filter(s => s.id !== semester.id));
+            try {
+                await deleteSemester(semester.id);
+                setSemesters(semesters.filter(s => s.id !== semester.id));
+            } catch (error) {
+                console.error("Error deleting semester:", error);
+            }
         }
     };
 
@@ -43,7 +66,10 @@ const AdminSemesterPage = () => {
             </div>
             <div className="content">
                 <div className="form-container">
-                    <SemesterForm onAddSemester={addSemester} editingSemester={editingSemester} />
+                    <SemesterForm 
+                        onAddSemester={handleAddOrUpdateSemester} 
+                        editingSemester={editingSemester} 
+                    />
                 </div>
                 <div className="list-container">
                     <SemesterList 
