@@ -1,3 +1,4 @@
+import Delete from '@mui/icons-material/Delete';
 import axios from 'axios';
 
 const baseLink = 'https://localhost:7201/api';
@@ -19,6 +20,18 @@ const userApi = axios.create({
 });
 
 let refreshingTokenPromise = null;
+
+// Interceptor để thêm Authorization token vào tất cả các request
+userApi.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
 // Interceptor để xử lý refresh token khi token hết hạn
 userApi.interceptors.response.use(
@@ -47,35 +60,31 @@ userApi.interceptors.response.use(
     }
 );
 
-// Thêm mới học kỳ
 const addSemester = async (semesterData) => {
     try {
         const response = await userApi.post(`/Admin/AddSemester`, semesterData);
-        console.log("Semester added successfully: ", response.data);
+        console.log("User data: ", response.data);
         return response.data;
     } catch (error) {
-        console.error('Error adding semester:', error);
+        console.error('Error:', error);
         throw error;
-    }
+    } 
 };
 
-// Lấy tất cả học kỳ
 const getAllSemesters = async () => {
     try {
         const response = await userApi.get(`/Admin/GetAllSemesters`);
-        console.log("All semesters: ", response.data);
         return response.data;
     } catch (error) {
-        console.error('Error fetching semesters:', error);
+        console.error('Error:', error);
         throw error;
     }
 };
 
-// Cập nhật học kỳ
-const updateSemester = async (semesterId, updatedSemesterData) => {
+const updatedSemester = async (semesterId, updatedSemesterData) => {
     try {
         const response = await userApi.put(`/Admin/UpdateSemester/${semesterId}`, updatedSemesterData);
-        console.log("Semester updated successfully: ", response.data);
+        console.log("Semester updated successfully:", response.data);
         return response.data;
     } catch (error) {
         console.error('Error updating semester:', error);
@@ -83,16 +92,15 @@ const updateSemester = async (semesterId, updatedSemesterData) => {
     }
 };
 
-// Xóa học kỳ
-const deleteSemester = async (semesterId) => {
+const deleteSemester = async (semesterId, deleteSemesterData) => {
     try {
-        const response = await userApi.delete(`/Admin/DeleteSemester/${semesterId}`);
+        const response = await userApi.delete(`/Admin/DeleteSemester/${semesterId}`, deleteSemesterData);
         console.log("Semester deleted successfully:", response.data);
         return response.data;
     } catch (error) {
         console.error('Error deleting semester:', error);
         throw error;
     }
-};
+}
+export {addSemester, getAllSemesters, updatedSemester, deleteSemester}
 
-export { addSemester, getAllSemesters, updateSemester, deleteSemester };

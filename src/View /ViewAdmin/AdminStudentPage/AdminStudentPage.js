@@ -19,8 +19,6 @@ import {
 } from "../../../AdminAPI";
 import "./AdminStudentPage.css";
 
-
-
 function AdminStudentPage() {
   const [formData, setFormData] = useState({
     fullName: "",
