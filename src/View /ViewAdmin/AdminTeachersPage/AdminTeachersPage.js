@@ -1,19 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { addTeacher, getTeachers, assignTeacherToClass, getAssignedTeachers, updateTeacher, deleteTeacherById, getTeachersBySubject } from '../../../API /CRUDTeachersAPI';
-import { Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import NavBar from '../../NavBar';
-import '../AdminTeachersPageCSS/AdminTeachersPage.css';
+import React, { useState, useEffect } from "react";
+import {
+  addTeacher,
+  getTeachers,
+  assignTeacherToClass,
+  getAssignedTeachers,
+  updateTeacher,
+  deleteTeacherById,
+  getTeachersBySubject,
+} from "../../../API /CRUDTeachersAPI";
+import {
+  Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material";
+import NavBar from "../../NavBar";
+import "../AdminTeachersPageCSS/AdminTeachersPage.css";
 
 const AdminTeachersPage = () => {
   const [teachers, setTeachers] = useState([]);
   const [assignedTeachers, setAssignedTeachers] = useState([]);
-  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', subjectId: '' });
+  const [newTeacher, setNewTeacher] = useState({
+    name: "",
+    email: "",
+    subjectId: "",
+  });
   const [editTeacher, setEditTeacher] = useState(null);
-  const [assignment, setAssignment] = useState({ teacherFullName: '', teacherEmail: '', className: '' });
-  const [isDialogOpen, setDialogOpen] = useState({ type: '', open: false });
+  const [assignment, setAssignment] = useState({
+    teacherFullName: "",
+    teacherEmail: "",
+    className: "",
+  });
+  const [isDialogOpen, setDialogOpen] = useState({ type: "", open: false });
   const [deletingTeacher, setDeletingTeacher] = useState(null);
-  const [subjectName, setSubjectName] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [subjectName, setSubjectName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [errorDialog, setErrorDialog] = useState({ open: false, message: "" });
 
   useEffect(() => {
     fetchTeachers();
@@ -29,8 +54,6 @@ const AdminTeachersPage = () => {
       console.error(error.message);
     }
   };
-  
-  
 
   const fetchAssignedTeachers = async () => {
     try {
@@ -41,7 +64,24 @@ const AdminTeachersPage = () => {
       console.error(error.message);
     }
   };
-  
+
+  const showErrorDialog = (message) => {
+    setErrorDialog({ open: true, message });
+  };
+
+  const handleCloseErrorDialog = () => {
+    setErrorDialog({ open: false, message: "" });
+  };
+
+  const isValidName = (name) => {
+    const nameRegex = /^[A-Za-z\s]+$/;
+    return nameRegex.test(name);
+  };
+
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const fetchTeachersBySubject = async () => {
     try {
@@ -53,51 +93,113 @@ const AdminTeachersPage = () => {
   };
 
   const handleAddTeacher = async () => {
+    if (!isValidName(newTeacher.name)) {
+      showErrorDialog(
+        "Invalid teacher name. Only letters and spaces are accepted."
+      );
+      return;
+    }
+
+    if (!isValidEmail(newTeacher.email)) {
+      showErrorDialog("invalid email.");
+      return;
+    }
+
+    const isDuplicateEmail = teachers.some(
+      (teacher) => teacher.email === newTeacher.email
+    );
+    if (isDuplicateEmail) {
+      showErrorDialog("Teacher email already exists, please enter another email.");
+      return;
+    }
+
+    if (!newTeacher.subjectId) {
+      showErrorDialog("Please provide subject Id");
+      return;
+    }
+
     try {
       const addedTeacher = await addTeacher(newTeacher);
       setTeachers([...teachers, addedTeacher]);
-      setNewTeacher({ name: '', email: '', subjectId: '' });
+      setNewTeacher({ name: "", email: "", subjectId: "" });
     } catch (error) {
-      console.error(error.message);
+      showErrorDialog(error.message);
     }
   };
 
   const handleOpenDialog = (type, data) => {
-  if (type === 'assign') {
-    setAssignment({ teacherFullName: data.name, teacherEmail: data.email, className: '' });
-  } else if (type === 'edit') {
-    setEditTeacher(data);
-  } else if (type === 'delete') {
-    setDeletingTeacher(data); // Make sure data includes the correct 'id' field
-  }
-  setDialogOpen({ type, open: true });
-};
-
+    if (type === "assign") {
+      setAssignment({
+        teacherFullName: data.name,
+        teacherEmail: data.email,
+        className: "",
+      });
+    } else if (type === "edit") {
+      setEditTeacher(data);
+    } else if (type === "delete") {
+      setDeletingTeacher(data); // Make sure data includes the correct 'id' field
+    }
+    setDialogOpen({ type, open: true });
+  };
 
   const handleCloseDialog = () => {
-    setDialogOpen({ type: '', open: false });
+    setDialogOpen({ type: "", open: false });
   };
 
   const handleAssignTeacher = async () => {
+    if (!isValidName(assignment.teacherFullName)) {
+      showErrorDialog(
+        "Invalid teacher name. Only letters and spaces are accepted."
+      );
+      return;
+    }
+
+    if (!isValidEmail(assignment.teacherEmail)) {
+      showErrorDialog("invalid email.");
+      return;
+    }
+
+    if (!assignment.className) {
+      showErrorDialog("Please enter class name.");
+      return;
+    }
+
     try {
       await assignTeacherToClass(assignment);
       fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
-      console.error(error.message);
+      showErrorDialog(error.message);
     }
   };
 
   const handleUpdateTeacher = async () => {
+    if (!isValidName(editTeacher.name)) {
+      alert("Invalid teacher name. Only letters and spaces are allowed.");
+      return;
+    }
+
+    if (!isValidEmail(editTeacher.email)) {
+      showErrorDialog("Invalid email format.");
+      return;
+    }
+
+    const isDuplicateEmail = teachers.some(teacher => teacher.email === newTeacher.email);
+    if (isDuplicateEmail) {
+      showErrorDialog("Teacher email already exists, please enter another email.");
+      return;
+    }
+
+    if (!editTeacher.subjectId) {
+      showErrorDialog("Please provide a subject ID.");
+      return;
+    }
+
     try {
-      if (!editTeacher || !editTeacher.teacherId) {
-        console.error("Invalid teacher data for update");
-        return;
-      }
       await updateTeacher(editTeacher.teacherId, {
         name: editTeacher.name,
         email: editTeacher.email,
-        subjectId: editTeacher.subjectId
+        subjectId: editTeacher.subjectId,
       });
       fetchTeachers();
       handleCloseDialog();
@@ -111,25 +213,26 @@ const AdminTeachersPage = () => {
       console.error("No teacher selected for deletion");
       return;
     }
-  
-    console.log("Teacher to delete:", deletingTeacher);  // Debugging line
-    console.log("Teacher ID:", deletingTeacher.id);  // Check if the ID is defined
-  
+
+    console.log("Teacher to delete:", deletingTeacher); // Debugging line
+    console.log("Teacher ID:", deletingTeacher.id); // Check if the ID is defined
+
     try {
-      await deleteTeacherById(deletingTeacher.teacherId);  // Ensure deletingTeacher has a valid 'id'
-      fetchTeachers();  // Refresh the teacher list after deletion
-      handleCloseDialog();  // Close the dialog after the operation
+      await deleteTeacherById(deletingTeacher.teacherId); // Ensure deletingTeacher has a valid 'id'
+      fetchTeachers(); // Refresh the teacher list after deletion
+      handleCloseDialog(); // Close the dialog after the operation
     } catch (error) {
       console.error("Error when deleting teacher:", error.message || error);
       alert("Failed to delete teacher. Please try again.");
     }
   };
-  
-
 
   return (
     <div>
-      <NavBar searchQuery={searchQuery} onSearchChange={(e) => setSearchQuery(e.target.value)} />
+      <NavBar
+        searchQuery={searchQuery}
+        onSearchChange={(e) => setSearchQuery(e.target.value)}
+      />
 
       <h2>Teacher Management</h2>
 
@@ -138,17 +241,23 @@ const AdminTeachersPage = () => {
         <TextField
           label="Teacher Name"
           value={newTeacher.name}
-          onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })}
+          onChange={(e) =>
+            setNewTeacher({ ...newTeacher, name: e.target.value })
+          }
         />
         <TextField
           label="Email"
           value={newTeacher.email}
-          onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+          onChange={(e) =>
+            setNewTeacher({ ...newTeacher, email: e.target.value })
+          }
         />
         <TextField
           label="Subject ID"
           value={newTeacher.subjectId}
-          onChange={(e) => setNewTeacher({ ...newTeacher, subjectId: e.target.value })}
+          onChange={(e) =>
+            setNewTeacher({ ...newTeacher, subjectId: e.target.value })
+          }
         />
         <Button onClick={handleAddTeacher}>Add Teacher</Button>
       </div>
@@ -166,11 +275,19 @@ const AdminTeachersPage = () => {
         <h3>Teachers</h3>
         <ul>
           {teachers.map((teacher) => (
-            <li key={teacher.id}> {/* Use id instead of email for the key */}
+            <li key={teacher.id}>
+              {" "}
+              {/* Use id instead of email for the key */}
               {teacher.name} ({teacher.email}) - Subject: {teacher.subjectName}
-              <Button onClick={() => handleOpenDialog('edit', teacher)}>Edit</Button>
-              <Button onClick={() => handleOpenDialog('delete', teacher)}>Delete</Button>
-              <Button onClick={() => handleOpenDialog('assign', teacher)}>Assign to Class</Button>
+              <Button onClick={() => handleOpenDialog("edit", teacher)}>
+                Edit
+              </Button>
+              <Button onClick={() => handleOpenDialog("delete", teacher)}>
+                Delete
+              </Button>
+              <Button onClick={() => handleOpenDialog("assign", teacher)}>
+                Assign to Class
+              </Button>
             </li>
           ))}
         </ul>
@@ -181,19 +298,25 @@ const AdminTeachersPage = () => {
         <ul>
           {assignedTeachers.map((assignment, index) => (
             <li key={index}>
-              {assignment.teacherFullName} ({assignment.teacherEmail}) - Class: {assignment.className}
+              {assignment.teacherFullName} ({assignment.teacherEmail}) - Class:{" "}
+              {assignment.className}
             </li>
           ))}
         </ul>
       </div>
 
-      <Dialog open={isDialogOpen.open && isDialogOpen.type === 'assign'} onClose={handleCloseDialog}>
+      <Dialog
+        open={isDialogOpen.open && isDialogOpen.type === "assign"}
+        onClose={handleCloseDialog}
+      >
         <DialogTitle>Assign Teacher to Class</DialogTitle>
         <DialogContent>
           <TextField
             label="Class Name"
             value={assignment.className}
-            onChange={(e) => setAssignment({ ...assignment, className: e.target.value })}
+            onChange={(e) =>
+              setAssignment({ ...assignment, className: e.target.value })
+            }
           />
         </DialogContent>
         <DialogActions>
@@ -202,23 +325,32 @@ const AdminTeachersPage = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={isDialogOpen.open && isDialogOpen.type === 'edit'} onClose={handleCloseDialog}>
+      <Dialog
+        open={isDialogOpen.open && isDialogOpen.type === "edit"}
+        onClose={handleCloseDialog}
+      >
         <DialogTitle>Edit Teacher Information</DialogTitle>
         <DialogContent>
           <TextField
             label="Teacher Name"
             value={editTeacher?.name}
-            onChange={(e) => setEditTeacher({ ...editTeacher, name: e.target.value })}
+            onChange={(e) =>
+              setEditTeacher({ ...editTeacher, name: e.target.value })
+            }
           />
           <TextField
             label="Email"
             value={editTeacher?.email}
-            onChange={(e) => setEditTeacher({ ...editTeacher, email: e.target.value })}
+            onChange={(e) =>
+              setEditTeacher({ ...editTeacher, email: e.target.value })
+            }
           />
           <TextField
             label="Subject ID"
             value={editTeacher?.subjectId}
-            onChange={(e) => setEditTeacher({ ...editTeacher, subjectId: e.target.value })}
+            onChange={(e) =>
+              setEditTeacher({ ...editTeacher, subjectId: e.target.value })
+            }
           />
         </DialogContent>
         <DialogActions>
@@ -227,7 +359,10 @@ const AdminTeachersPage = () => {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={isDialogOpen.open && isDialogOpen.type === 'delete'} onClose={handleCloseDialog}>
+      <Dialog
+        open={isDialogOpen.open && isDialogOpen.type === "delete"}
+        onClose={handleCloseDialog}
+      >
         <DialogTitle>Delete Teacher</DialogTitle>
         <DialogContent>
           <p>Are you sure you want to delete {deletingTeacher?.name}?</p>
@@ -235,6 +370,16 @@ const AdminTeachersPage = () => {
         <DialogActions>
           <Button onClick={handleDeleteTeacher}>Delete</Button>
           <Button onClick={handleCloseDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
+        <DialogTitle>Lỗi nhập liệu</DialogTitle>
+        <DialogContent>
+          <p>{errorDialog.message}</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseErrorDialog}>OK</Button>
         </DialogActions>
       </Dialog>
     </div>
