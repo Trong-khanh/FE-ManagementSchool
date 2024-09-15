@@ -1,171 +1,244 @@
-import NavBar from "../../NavBar";
-import React, { useState } from "react";
-import {
-  Button,
-  TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-} from "@mui/material";
+import React, { useState, useEffect } from 'react';
+import { addTeacher, getTeachers, assignTeacherToClass, getAssignedTeachers, updateTeacher, deleteTeacherById, getTeachersBySubject } from '../../../API /CRUDTeachersAPI';
+import { Button, TextField, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import NavBar from '../../NavBar';
+import '../AdminTeachersPageCSS/AdminTeachersPage.css';
 
-function AdminTeachersPage() {
-  const [teachers, setTeachers] = useState([
-    { id: 1, name: "Nguyễn Văn A", email: "a@example.com", subjectName: "Toán" },
-    { id: 2, name: "Trần Thị B", email: "b@example.com", subjectName: "Vật Lý" },
-  ]); // Dữ liệu giáo viên giả
+const AdminTeachersPage = () => {
+  const [teachers, setTeachers] = useState([]);
+  const [assignedTeachers, setAssignedTeachers] = useState([]);
+  const [newTeacher, setNewTeacher] = useState({ name: '', email: '', subjectId: '' });
+  const [editTeacher, setEditTeacher] = useState(null);
+  const [assignment, setAssignment] = useState({ teacherFullName: '', teacherEmail: '', className: '' });
+  const [isDialogOpen, setDialogOpen] = useState({ type: '', open: false });
+  const [deletingTeacher, setDeletingTeacher] = useState(null);
+  const [subjectName, setSubjectName] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const [newTeacher, setNewTeacher] = useState({
-    name: "",
-    email: "",
-    subjectName: "",
-  });
+  useEffect(() => {
+    fetchTeachers();
+    fetchAssignedTeachers();
+  }, []);
 
-  const [editMode, setEditMode] = useState(false);
-  const [editTeacherId, setEditTeacherId] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
+  const fetchTeachers = async () => {
+    try {
+      const result = await getTeachers();
+      console.log("Fetched teachers:", result); // Log the result to check the structure
+      setTeachers(result);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+  
+  
 
-  // Kiểm tra tên giáo viên không chứa số
-  const isValidName = (name) => {
-    return !/\d/.test(name);
+  const fetchAssignedTeachers = async () => {
+    try {
+      const result = await getAssignedTeachers();
+      console.log("Fetched assigned teachers:", result); // Log the result to verify
+      setAssignedTeachers(result);
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+  
+
+  const fetchTeachersBySubject = async () => {
+    try {
+      const result = await getTeachersBySubject(subjectName);
+      setTeachers(result);
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
-  // Xử lý nhập dữ liệu
-  const handleInputChange = (event) => {
-    const { name, value } = event.target;
-    setNewTeacher({ ...newTeacher, [name]: value });
+  const handleAddTeacher = async () => {
+    try {
+      const addedTeacher = await addTeacher(newTeacher);
+      setTeachers([...teachers, addedTeacher]);
+      setNewTeacher({ name: '', email: '', subjectId: '' });
+    } catch (error) {
+      console.error(error.message);
+    }
   };
 
-  // Thêm giáo viên vào danh sách
-  const handleAddTeacher = () => {
-    const { name } = newTeacher;
+  const handleOpenDialog = (type, data) => {
+  if (type === 'assign') {
+    setAssignment({ teacherFullName: data.name, teacherEmail: data.email, className: '' });
+  } else if (type === 'edit') {
+    setEditTeacher(data);
+  } else if (type === 'delete') {
+    setDeletingTeacher(data); // Make sure data includes the correct 'id' field
+  }
+  setDialogOpen({ type, open: true });
+};
 
-    if (!isValidName(name)) {
-      setErrorMessage("Tên giáo viên không được chứa số.");
+
+  const handleCloseDialog = () => {
+    setDialogOpen({ type: '', open: false });
+  };
+
+  const handleAssignTeacher = async () => {
+    try {
+      await assignTeacherToClass(assignment);
+      fetchAssignedTeachers();
+      handleCloseDialog();
+    } catch (error) {
+      console.error(error.message);
+    }
+  };
+
+  const handleUpdateTeacher = async () => {
+    try {
+      if (!editTeacher || !editTeacher.teacherId) {
+        console.error("Invalid teacher data for update");
+        return;
+      }
+      await updateTeacher(editTeacher.teacherId, {
+        name: editTeacher.name,
+        email: editTeacher.email,
+        subjectId: editTeacher.subjectId
+      });
+      fetchTeachers();
+      handleCloseDialog();
+    } catch (error) {
+      console.error("Error updating teacher:", error.message);
+    }
+  };
+
+  const handleDeleteTeacher = async () => {
+    if (!deletingTeacher) {
+      console.error("No teacher selected for deletion");
       return;
     }
-
-    const newId = teachers.length + 1;
-    setTeachers([...teachers, { ...newTeacher, id: newId }]);
-    setNewTeacher({ name: "", email: "", subjectName: "" }); // Reset form
-    setErrorMessage(""); // Xóa thông báo lỗi
-  };
-
-  // Bắt đầu chỉnh sửa giáo viên
-  const handleEditTeacher = (teacher) => {
-    setNewTeacher(teacher);
-    setEditMode(true);
-    setEditTeacherId(teacher.id);
-  };
-
-  // Cập nhật giáo viên
-  const handleUpdateTeacher = () => {
-    const { name } = newTeacher;
-
-    if (!isValidName(name)) {
-      setErrorMessage("Tên giáo viên không được chứa số.");
-      return;
+  
+    console.log("Teacher to delete:", deletingTeacher);  // Debugging line
+    console.log("Teacher ID:", deletingTeacher.id);  // Check if the ID is defined
+  
+    try {
+      await deleteTeacherById(deletingTeacher.teacherId);  // Ensure deletingTeacher has a valid 'id'
+      fetchTeachers();  // Refresh the teacher list after deletion
+      handleCloseDialog();  // Close the dialog after the operation
+    } catch (error) {
+      console.error("Error when deleting teacher:", error.message || error);
+      alert("Failed to delete teacher. Please try again.");
     }
-
-    setTeachers(
-      teachers.map((teacher) =>
-        teacher.id === editTeacherId ? { ...newTeacher, id: teacher.id } : teacher
-      )
-    );
-    setNewTeacher({ name: "", email: "", subjectName: "" });
-    setEditMode(false);
-    setEditTeacherId(null);
-    setErrorMessage(""); // Xóa thông báo lỗi
   };
+  
 
-  // Xóa giáo viên khỏi danh sách
-  const handleDeleteTeacher = (id) => {
-    setTeachers(teachers.filter((teacher) => teacher.id !== id));
-  };
 
   return (
     <div>
-      {/* Hiển thị NavBar */}
-      <NavBar />
-      
-      <div style={{ padding: "20px" }}>
-        <h2>Quản lý giáo viên</h2>
-        <div>
+      <NavBar searchQuery={searchQuery} onSearchChange={(e) => setSearchQuery(e.target.value)} />
+
+      <h2>Teacher Management</h2>
+
+      <div className="teacher-form">
+        <h3>Add New Teacher</h3>
+        <TextField
+          label="Teacher Name"
+          value={newTeacher.name}
+          onChange={(e) => setNewTeacher({ ...newTeacher, name: e.target.value })}
+        />
+        <TextField
+          label="Email"
+          value={newTeacher.email}
+          onChange={(e) => setNewTeacher({ ...newTeacher, email: e.target.value })}
+        />
+        <TextField
+          label="Subject ID"
+          value={newTeacher.subjectId}
+          onChange={(e) => setNewTeacher({ ...newTeacher, subjectId: e.target.value })}
+        />
+        <Button onClick={handleAddTeacher}>Add Teacher</Button>
+      </div>
+
+      <div className="subject-search">
+        <TextField
+          label="Search by Subject Name"
+          value={subjectName}
+          onChange={(e) => setSubjectName(e.target.value)}
+        />
+        <Button onClick={fetchTeachersBySubject}>Search</Button>
+      </div>
+
+      <div className="teacher-list">
+        <h3>Teachers</h3>
+        <ul>
+          {teachers.map((teacher) => (
+            <li key={teacher.id}> {/* Use id instead of email for the key */}
+              {teacher.name} ({teacher.email}) - Subject: {teacher.subjectName}
+              <Button onClick={() => handleOpenDialog('edit', teacher)}>Edit</Button>
+              <Button onClick={() => handleOpenDialog('delete', teacher)}>Delete</Button>
+              <Button onClick={() => handleOpenDialog('assign', teacher)}>Assign to Class</Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="assigned-teachers">
+        <h3>Assigned Teachers</h3>
+        <ul>
+          {assignedTeachers.map((assignment, index) => (
+            <li key={index}>
+              {assignment.teacherFullName} ({assignment.teacherEmail}) - Class: {assignment.className}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <Dialog open={isDialogOpen.open && isDialogOpen.type === 'assign'} onClose={handleCloseDialog}>
+        <DialogTitle>Assign Teacher to Class</DialogTitle>
+        <DialogContent>
           <TextField
-            label="Tên đầy đủ"
-            name="name"
-            value={newTeacher.name}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
+            label="Class Name"
+            value={assignment.className}
+            onChange={(e) => setAssignment({ ...assignment, className: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleAssignTeacher}>Assign</Button>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={isDialogOpen.open && isDialogOpen.type === 'edit'} onClose={handleCloseDialog}>
+        <DialogTitle>Edit Teacher Information</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Teacher Name"
+            value={editTeacher?.name}
+            onChange={(e) => setEditTeacher({ ...editTeacher, name: e.target.value })}
           />
           <TextField
             label="Email"
-            name="email"
-            value={newTeacher.email}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
+            value={editTeacher?.email}
+            onChange={(e) => setEditTeacher({ ...editTeacher, email: e.target.value })}
           />
           <TextField
-            label="Tên môn học"
-            name="subjectName"
-            value={newTeacher.subjectName}
-            onChange={handleInputChange}
-            fullWidth
-            margin="normal"
+            label="Subject ID"
+            value={editTeacher?.subjectId}
+            onChange={(e) => setEditTeacher({ ...editTeacher, subjectId: e.target.value })}
           />
-          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={editMode ? handleUpdateTeacher : handleAddTeacher}
-          >
-            {editMode ? "Cập nhật giáo viên" : "Thêm giáo viên"}
-          </Button>
-        </div>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleUpdateTeacher}>Update</Button>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
 
-        <TableContainer component={Paper} style={{ marginTop: "20px" }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Tên đầy đủ</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Tên môn học</TableCell>
-                <TableCell>Hành động</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {teachers.map((teacher) => (
-                <TableRow key={teacher.id}>
-                  <TableCell>{teacher.name}</TableCell>
-                  <TableCell>{teacher.email}</TableCell>
-                  <TableCell>{teacher.subjectName}</TableCell>
-                  <TableCell>
-                    <Button
-                      color="primary"
-                      onClick={() => handleEditTeacher(teacher)}
-                    >
-                      Sửa
-                    </Button>
-                    <Button
-                      color="secondary"
-                      onClick={() => handleDeleteTeacher(teacher.id)}
-                    >
-                      Xóa
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
+      <Dialog open={isDialogOpen.open && isDialogOpen.type === 'delete'} onClose={handleCloseDialog}>
+        <DialogTitle>Delete Teacher</DialogTitle>
+        <DialogContent>
+          <p>Are you sure you want to delete {deletingTeacher?.name}?</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteTeacher}>Delete</Button>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
-}
+};
 
 export default AdminTeachersPage;

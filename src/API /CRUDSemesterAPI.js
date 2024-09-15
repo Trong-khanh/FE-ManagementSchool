@@ -1,4 +1,3 @@
-import Delete from '@mui/icons-material/Delete';
 import axios from 'axios';
 
 const baseLink = 'https://localhost:7201/api';
@@ -103,4 +102,3 @@ const deleteSemester = async (semesterId, deleteSemesterData) => {
     }
 }
 export {addSemester, getAllSemesters, updatedSemester, deleteSemester}
-
