@@ -7,7 +7,7 @@ import {
   updateTeacher,
   deleteTeacherById,
   getTeachersBySubject,
-} from "../../../API /CRUDTeachersAPI";
+} from "../../../API /CRUDTeachersAPI"; 
 import {
   Button,
   TextField,
@@ -48,7 +48,7 @@ const AdminTeachersPage = () => {
   const fetchTeachers = async () => {
     try {
       const result = await getTeachers();
-      console.log("Fetched teachers:", result); // Log the result to check the structure
+      console.log("Fetched teachers:", result);
       setTeachers(result);
     } catch (error) {
       console.error(error.message);
@@ -58,12 +58,12 @@ const AdminTeachersPage = () => {
   const fetchAssignedTeachers = async () => {
     try {
       const result = await getAssignedTeachers();
-      console.log("Fetched assigned teachers:", result); // Log the result to verify
+      console.log("Fetched assigned teachers:", result);
       setAssignedTeachers(result);
     } catch (error) {
       console.error(error.message);
     }
-  };
+  };  
 
   const showErrorDialog = (message) => {
     setErrorDialog({ open: true, message });
@@ -101,7 +101,7 @@ const AdminTeachersPage = () => {
     }
 
     if (!isValidEmail(newTeacher.email)) {
-      showErrorDialog("invalid email.");
+      showErrorDialog("Invalid email.");
       return;
     }
 
@@ -137,7 +137,7 @@ const AdminTeachersPage = () => {
     } else if (type === "edit") {
       setEditTeacher(data);
     } else if (type === "delete") {
-      setDeletingTeacher(data); // Make sure data includes the correct 'id' field
+      setDeletingTeacher(data);
     }
     setDialogOpen({ type, open: true });
   };
@@ -155,7 +155,7 @@ const AdminTeachersPage = () => {
     }
 
     if (!isValidEmail(assignment.teacherEmail)) {
-      showErrorDialog("invalid email.");
+      showErrorDialog("Invalid email.");
       return;
     }
 
@@ -166,7 +166,7 @@ const AdminTeachersPage = () => {
 
     try {
       await assignTeacherToClass(assignment);
-      fetchAssignedTeachers();
+      fetchAssignedTeachers(); // Refresh the assigned teachers list
       handleCloseDialog();
     } catch (error) {
       showErrorDialog(error.message);
@@ -175,7 +175,7 @@ const AdminTeachersPage = () => {
 
   const handleUpdateTeacher = async () => {
     if (!isValidName(editTeacher.name)) {
-      alert("Invalid teacher name. Only letters and spaces are allowed.");
+      showErrorDialog("Invalid teacher name. Only letters and spaces are allowed.");
       return;
     }
 
@@ -214,16 +214,13 @@ const AdminTeachersPage = () => {
       return;
     }
 
-    console.log("Teacher to delete:", deletingTeacher); // Debugging line
-    console.log("Teacher ID:", deletingTeacher.id); // Check if the ID is defined
-
     try {
-      await deleteTeacherById(deletingTeacher.teacherId); // Ensure deletingTeacher has a valid 'id'
-      fetchTeachers(); // Refresh the teacher list after deletion
-      handleCloseDialog(); // Close the dialog after the operation
+      await deleteTeacherById(deletingTeacher.teacherId);
+      fetchTeachers(); // Refresh the teacher list
+      handleCloseDialog();
     } catch (error) {
       console.error("Error when deleting teacher:", error.message || error);
-      alert("Failed to delete teacher. Please try again.");
+      showErrorDialog("Failed to delete teacher. Please try again.");
     }
   };
 
@@ -276,8 +273,6 @@ const AdminTeachersPage = () => {
         <ul>
           {teachers.map((teacher) => (
             <li key={teacher.id}>
-              {" "}
-              {/* Use id instead of email for the key */}
               {teacher.name} ({teacher.email}) - Subject: {teacher.subjectName}
               <Button onClick={() => handleOpenDialog("edit", teacher)}>
                 Edit
@@ -285,103 +280,123 @@ const AdminTeachersPage = () => {
               <Button onClick={() => handleOpenDialog("delete", teacher)}>
                 Delete
               </Button>
-              <Button onClick={() => handleOpenDialog("assign", teacher)}>
-                Assign to Class
+              <Button
+                onClick={() =>
+                  handleOpenDialog("assign", {
+                    name: teacher.name,
+                    email: teacher.email,
+                  })
+                }
+              >
+                Assign Class
               </Button>
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="assigned-teachers">
-        <h3>Assigned Teachers</h3>
-        <ul>
-          {assignedTeachers.map((assignment, index) => (
-            <li key={index}>
-              {assignment.teacherFullName} ({assignment.teacherEmail}) - Class:{" "}
-              {assignment.className}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
+        {isDialogOpen.type === "edit" && (
+          <>
+            <DialogTitle>Edit Teacher</DialogTitle>
+            <DialogContent>
+              <TextField
+                label="Teacher Name"
+                value={editTeacher?.name || ""}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, name: e.target.value })
+                }
+              />
+              <TextField
+                label="Email"
+                value={editTeacher?.email || ""}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, email: e.target.value })
+                }
+              />
+              <TextField
+                label="Subject ID"
+                value={editTeacher?.subjectId || ""}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, subjectId: e.target.value })
+                }
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Cancel</Button>
+              <Button onClick={handleUpdateTeacher}>Update</Button>
+            </DialogActions>
+          </>
+        )}
 
-      <Dialog
-        open={isDialogOpen.open && isDialogOpen.type === "assign"}
-        onClose={handleCloseDialog}
-      >
-        <DialogTitle>Assign Teacher to Class</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Class Name"
-            value={assignment.className}
-            onChange={(e) =>
-              setAssignment({ ...assignment, className: e.target.value })
-            }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleAssignTeacher}>Assign</Button>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
+        {isDialogOpen.type === "assign" && (
+          <>
+            <DialogTitle>Assign Teacher to Class</DialogTitle>
+            <DialogContent>
+              <TextField
+                label="Teacher Full Name"
+                value={assignment.teacherFullName}
+                onChange={(e) =>
+                  setAssignment({ ...assignment, teacherFullName: e.target.value })
+                }
+              />
+              <TextField
+                label="Teacher Email"
+                value={assignment.teacherEmail}
+                onChange={(e) =>
+                  setAssignment({ ...assignment, teacherEmail: e.target.value })
+                }
+              />
+              <TextField
+                label="Class Name"
+                value={assignment.className}
+                onChange={(e) =>
+                  setAssignment({ ...assignment, className: e.target.value })
+                }
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Cancel</Button>
+              <Button onClick={handleAssignTeacher}>Assign</Button>
+            </DialogActions>
+          </>
+        )}
 
-      <Dialog
-        open={isDialogOpen.open && isDialogOpen.type === "edit"}
-        onClose={handleCloseDialog}
-      >
-        <DialogTitle>Edit Teacher Information</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Teacher Name"
-            value={editTeacher?.name}
-            onChange={(e) =>
-              setEditTeacher({ ...editTeacher, name: e.target.value })
-            }
-          />
-          <TextField
-            label="Email"
-            value={editTeacher?.email}
-            onChange={(e) =>
-              setEditTeacher({ ...editTeacher, email: e.target.value })
-            }
-          />
-          <TextField
-            label="Subject ID"
-            value={editTeacher?.subjectId}
-            onChange={(e) =>
-              setEditTeacher({ ...editTeacher, subjectId: e.target.value })
-            }
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleUpdateTeacher}>Update</Button>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
-        open={isDialogOpen.open && isDialogOpen.type === "delete"}
-        onClose={handleCloseDialog}
-      >
-        <DialogTitle>Delete Teacher</DialogTitle>
-        <DialogContent>
-          <p>Are you sure you want to delete {deletingTeacher?.name}?</p>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteTeacher}>Delete</Button>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-        </DialogActions>
+        {isDialogOpen.type === "delete" && (
+          <>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogContent>
+              Are you sure you want to delete the teacher {deletingTeacher?.name}?
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Cancel</Button>
+              <Button onClick={handleDeleteTeacher}>Delete</Button>
+            </DialogActions>
+          </>
+        )}
       </Dialog>
 
       <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
-        <DialogTitle>Lỗi nhập liệu</DialogTitle>
-        <DialogContent>
-          <p>{errorDialog.message}</p>
-        </DialogContent>
+        <DialogTitle>Error</DialogTitle>
+        <DialogContent>{errorDialog.message}</DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseErrorDialog}>OK</Button>
+          <Button onClick={handleCloseErrorDialog}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <div className="assigned-teachers">
+  <h3>Assigned Teachers</h3>
+  <ul>
+    {assignedTeachers.map((assignment) => (
+      <li key={assignment.teacherId}>
+        Teacher Name: {assignment.teacherName} - Email: {assignment.teacherEmail}
+        <br />
+        Assigned Class: {assignment.className}
+      </li>
+    ))}
+  </ul>
+</div>
+
     </div>
   );
 };
