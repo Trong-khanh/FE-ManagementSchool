@@ -148,3 +148,17 @@ h2, h3 {
   background-color: #f5f5f5;
   border-bottom: 1px solid #ddd;
 }
+
+.section {
+  margin: 20px 25px; /* Khoảng cách ngoài cho mỗi phần */
+  padding: 20px; /* Khoảng cách bên trong */
+  border: 1px solid #ccc; /* Đường viền cho khung */
+  border-radius: 8px; /* Bo tròn góc */
+  background-color: #f9f9f9; /* Màu nền cho khung */
+}
+
+/* Tiêu đề trong từng phần */
+.section h3 {
+  margin: 0 0 15px; /* Khoảng cách dưới tiêu đề */
+  color: #333; /* Màu tiêu đề */
+}

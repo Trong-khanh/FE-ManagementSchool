@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   addTeacher,
   getTeachers,
@@ -6,8 +6,7 @@ import {
   getAssignedTeachers,
   updateTeacher,
   deleteTeacherById,
-  getTeachersBySubject,
-} from "../../../API /CRUDTeachersAPI"; 
+} from "../../../API /CRUDTeachersAPI";
 import {
   Button,
   TextField,
@@ -18,6 +17,16 @@ import {
 } from "@mui/material";
 import NavBar from "../../NavBar";
 import "../AdminTeachersPageCSS/AdminTeachersPage.css";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
 
 const AdminTeachersPage = () => {
   const [teachers, setTeachers] = useState([]);
@@ -35,63 +44,50 @@ const AdminTeachersPage = () => {
   });
   const [isDialogOpen, setDialogOpen] = useState({ type: "", open: false });
   const [deletingTeacher, setDeletingTeacher] = useState(null);
-  const [subjectName, setSubjectName] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-
   const [errorDialog, setErrorDialog] = useState({ open: false, message: "" });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showAssignedTeachers, setShowAssignedTeachers] = useState(false);
 
-  useEffect(() => {
-    fetchTeachers();
-    fetchAssignedTeachers();
-  }, []);
-
-  const fetchTeachers = async () => {
+  // Fetch teachers
+  const fetchTeachers = useCallback(async () => {
     try {
       const result = await getTeachers();
-      console.log("Fetched teachers:", result);
-      setTeachers(result);
+      setTeachers(result || []);
     } catch (error) {
-      console.error(error.message);
+      showErrorDialog("Failed to fetch teachers. Please try again.");
     }
-  };
+  }, []);
 
-  const fetchAssignedTeachers = async () => {
+  // Fetch assigned teachers
+  const fetchAssignedTeachers = useCallback(async () => {
     try {
       const result = await getAssignedTeachers();
-      console.log("Fetched assigned teachers:", result);
-      setAssignedTeachers(result);
+      setAssignedTeachers(result || []);
     } catch (error) {
-      console.error(error.message);
+      showErrorDialog("Failed to fetch assigned teachers. Please try again.");
     }
-  };  
+  }, []);
 
+  // Fetch teachers when the component mounts
+  useEffect(() => {
+    fetchTeachers();
+  }, [fetchTeachers]);
+
+  // Error dialog handler
   const showErrorDialog = (message) => {
     setErrorDialog({ open: true, message });
   };
 
+  // Error dialog close handler
   const handleCloseErrorDialog = () => {
     setErrorDialog({ open: false, message: "" });
   };
 
-  const isValidName = (name) => {
-    const nameRegex = /^[A-Za-z\s]+$/;
-    return nameRegex.test(name);
-  };
+  // Input validation functions
+  const isValidName = (name) => /^[A-Za-z\s]+$/.test(name);
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  const isValidEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const fetchTeachersBySubject = async () => {
-    try {
-      const result = await getTeachersBySubject(subjectName);
-      setTeachers(result);
-    } catch (error) {
-      console.error(error.message);
-    }
-  };
-
+  // Handle adding a new teacher
   const handleAddTeacher = async () => {
     if (!isValidName(newTeacher.name)) {
       showErrorDialog(
@@ -109,12 +105,14 @@ const AdminTeachersPage = () => {
       (teacher) => teacher.email === newTeacher.email
     );
     if (isDuplicateEmail) {
-      showErrorDialog("Teacher email already exists, please enter another email.");
+      showErrorDialog(
+        "Teacher email already exists, please enter another email."
+      );
       return;
     }
 
     if (!newTeacher.subjectId) {
-      showErrorDialog("Please provide subject Id");
+      showErrorDialog("Please provide a subject ID.");
       return;
     }
 
@@ -122,11 +120,13 @@ const AdminTeachersPage = () => {
       const addedTeacher = await addTeacher(newTeacher);
       setTeachers([...teachers, addedTeacher]);
       setNewTeacher({ name: "", email: "", subjectId: "" });
+      fetchAssignedTeachers();
     } catch (error) {
-      showErrorDialog(error.message);
+      showErrorDialog(error.message || "Failed to add teacher.");
     }
   };
 
+  // Handle opening various dialogs (assign, edit, delete)
   const handleOpenDialog = (type, data) => {
     if (type === "assign") {
       setAssignment({
@@ -142,10 +142,12 @@ const AdminTeachersPage = () => {
     setDialogOpen({ type, open: true });
   };
 
+  // Handle closing dialogs
   const handleCloseDialog = () => {
     setDialogOpen({ type: "", open: false });
   };
 
+  // Handle assigning a teacher to a class
   const handleAssignTeacher = async () => {
     if (!isValidName(assignment.teacherFullName)) {
       showErrorDialog(
@@ -166,16 +168,19 @@ const AdminTeachersPage = () => {
 
     try {
       await assignTeacherToClass(assignment);
-      fetchAssignedTeachers(); // Refresh the assigned teachers list
+      fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
-      showErrorDialog(error.message);
+      showErrorDialog(error.message || "Failed to assign teacher to class.");
     }
   };
 
+  // Handle updating a teacher
   const handleUpdateTeacher = async () => {
     if (!isValidName(editTeacher.name)) {
-      showErrorDialog("Invalid teacher name. Only letters and spaces are allowed.");
+      showErrorDialog(
+        "Invalid teacher name. Only letters and spaces are allowed."
+      );
       return;
     }
 
@@ -184,9 +189,15 @@ const AdminTeachersPage = () => {
       return;
     }
 
-    const isDuplicateEmail = teachers.some(teacher => teacher.email === newTeacher.email);
+    const isDuplicateEmail = teachers.some(
+      (teacher) =>
+        teacher.email === editTeacher.email &&
+        teacher.teacherId !== editTeacher.teacherId
+    );
     if (isDuplicateEmail) {
-      showErrorDialog("Teacher email already exists, please enter another email.");
+      showErrorDialog(
+        "Teacher email already exists, please enter another email."
+      );
       return;
     }
 
@@ -204,24 +215,30 @@ const AdminTeachersPage = () => {
       fetchTeachers();
       handleCloseDialog();
     } catch (error) {
-      console.error("Error updating teacher:", error.message);
+      showErrorDialog(error.message || "Failed to update teacher.");
     }
   };
 
+  // Handle deleting a teacher
   const handleDeleteTeacher = async () => {
     if (!deletingTeacher) {
-      console.error("No teacher selected for deletion");
+      showErrorDialog("No teacher selected for deletion.");
       return;
     }
 
     try {
       await deleteTeacherById(deletingTeacher.teacherId);
-      fetchTeachers(); // Refresh the teacher list
+      fetchTeachers();
+      fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
-      console.error("Error when deleting teacher:", error.message || error);
-      showErrorDialog("Failed to delete teacher. Please try again.");
+      showErrorDialog(error.message || "Failed to delete teacher.");
     }
+  };
+
+  const handleShowAssignedTeachers = async () => {
+    await fetchAssignedTeachers();
+    setShowAssignedTeachers(true);
   };
 
   return (
@@ -233,10 +250,10 @@ const AdminTeachersPage = () => {
 
       <h2>Teacher Management</h2>
 
-      <div className="teacher-form">
+      <div className="section">
         <h3>Add New Teacher</h3>
         <TextField
-          label="Teacher Name"
+          label="Name"
           value={newTeacher.name}
           onChange={(e) =>
             setNewTeacher({ ...newTeacher, name: e.target.value })
@@ -259,94 +276,79 @@ const AdminTeachersPage = () => {
         <Button onClick={handleAddTeacher}>Add Teacher</Button>
       </div>
 
-      <div className="subject-search">
-        <TextField
-          label="Search by Subject Name"
-          value={subjectName}
-          onChange={(e) => setSubjectName(e.target.value)}
-        />
-        <Button onClick={fetchTeachersBySubject}>Search</Button>
+      <div className="section teacher-list">
+        <h3>Teachers</h3>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+              <TableCell>Teacher Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Subject</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+  {teachers.map((teacher) => (
+    <TableRow key={teacher.teacherId}>
+      <TableCell>{teacher.name}</TableCell> {/* Sửa ở đây */}
+      <TableCell>{teacher.email}</TableCell>
+      <TableCell>{teacher.subjectName}</TableCell>
+      <TableCell>
+        <Button onClick={() => handleOpenDialog("edit", teacher)}>
+          Edit
+        </Button>
+        <Button onClick={() => handleOpenDialog("delete", teacher)}>
+          Delete
+        </Button>
+        <Button onClick={() => handleOpenDialog("assign", teacher)}>
+          Assign Class
+        </Button>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
+          </Table>
+        </TableContainer>
       </div>
 
-      <div className="teacher-list">
-        <h3>Teachers</h3>
-        <ul>
-          {teachers.map((teacher) => (
-            <li key={teacher.id}>
-              {teacher.name} ({teacher.email}) - Subject: {teacher.subjectName}
-              <Button onClick={() => handleOpenDialog("edit", teacher)}>
-                Edit
-              </Button>
-              <Button onClick={() => handleOpenDialog("delete", teacher)}>
-                Delete
-              </Button>
-              <Button
-                onClick={() =>
-                  handleOpenDialog("assign", {
-                    name: teacher.name,
-                    email: teacher.email,
-                  })
-                }
-              >
-                Assign Class
-              </Button>
-            </li>
-          ))}
-        </ul>
+      <div className="section assigned-teacher-list">
+        <h3>Assigned Teachers</h3>
+        <Button onClick={handleShowAssignedTeachers}>
+          Show Assigned Teachers
+        </Button>
+        {showAssignedTeachers && (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Teacher Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Class Name</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {assignedTeachers.map((assigned) => (
+                  <TableRow key={assigned.id}>
+                  <TableCell>{assigned.teacherFullName}</TableCell>
+                    <TableCell>{assigned.teacherEmail}</TableCell>
+                    <TableCell>{assigned.className}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </div>
 
       <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
-        {isDialogOpen.type === "edit" && (
-          <>
-            <DialogTitle>Edit Teacher</DialogTitle>
-            <DialogContent>
-              <TextField
-                label="Teacher Name"
-                value={editTeacher?.name || ""}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, name: e.target.value })
-                }
-              />
-              <TextField
-                label="Email"
-                value={editTeacher?.email || ""}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, email: e.target.value })
-                }
-              />
-              <TextField
-                label="Subject ID"
-                value={editTeacher?.subjectId || ""}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, subjectId: e.target.value })
-                }
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
-              <Button onClick={handleUpdateTeacher}>Update</Button>
-            </DialogActions>
-          </>
-        )}
-
         {isDialogOpen.type === "assign" && (
           <>
-            <DialogTitle>Assign Teacher to Class</DialogTitle>
+            <DialogTitle>
+              Assign Class to {assignment.teacherFullName}
+            </DialogTitle>
             <DialogContent>
-              <TextField
-                label="Teacher Full Name"
-                value={assignment.teacherFullName}
-                onChange={(e) =>
-                  setAssignment({ ...assignment, teacherFullName: e.target.value })
-                }
-              />
-              <TextField
-                label="Teacher Email"
-                value={assignment.teacherEmail}
-                onChange={(e) =>
-                  setAssignment({ ...assignment, teacherEmail: e.target.value })
-                }
-              />
               <TextField
                 label="Class Name"
                 value={assignment.className}
@@ -356,26 +358,60 @@ const AdminTeachersPage = () => {
               />
             </DialogContent>
             <DialogActions>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
               <Button onClick={handleAssignTeacher}>Assign</Button>
+              <Button onClick={handleCloseDialog}>Cancel</Button>
             </DialogActions>
           </>
         )}
 
-        {isDialogOpen.type === "delete" && (
+        {isDialogOpen.type === "edit" && editTeacher && (
           <>
-            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogTitle>Edit Teacher</DialogTitle>
             <DialogContent>
-              Are you sure you want to delete the teacher {deletingTeacher?.name}?
+              <TextField
+                label="Name"
+                value={editTeacher.name}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, name: e.target.value })
+                }
+              />
+              <TextField
+                label="Email"
+                value={editTeacher.email}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, email: e.target.value })
+                }
+              />
+              <TextField
+                label="Subject ID"
+                value={editTeacher.subjectId}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, subjectId: e.target.value })
+                }
+              />
             </DialogContent>
             <DialogActions>
+              <Button onClick={handleUpdateTeacher}>Update</Button>
               <Button onClick={handleCloseDialog}>Cancel</Button>
+            </DialogActions>
+          </>
+        )}
+
+        {isDialogOpen.type === "delete" && deletingTeacher && (
+          <>
+            <DialogTitle>Delete Teacher</DialogTitle>
+            <DialogContent>
+              Are you sure you want to delete {deletingTeacher.name}?
+            </DialogContent>
+            <DialogActions>
               <Button onClick={handleDeleteTeacher}>Delete</Button>
+              <Button onClick={handleCloseDialog}>Cancel</Button>
             </DialogActions>
           </>
         )}
       </Dialog>
 
+      {/* Dialog for error messages */}
       <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
         <DialogTitle>Error</DialogTitle>
         <DialogContent>{errorDialog.message}</DialogContent>
@@ -383,20 +419,6 @@ const AdminTeachersPage = () => {
           <Button onClick={handleCloseErrorDialog}>Close</Button>
         </DialogActions>
       </Dialog>
-
-      <div className="assigned-teachers">
-  <h3>Assigned Teachers</h3>
-  <ul>
-    {assignedTeachers.map((assignment) => (
-      <li key={assignment.teacherId}>
-        Teacher Name: {assignment.teacherName} - Email: {assignment.teacherEmail}
-        <br />
-        Assigned Class: {assignment.className}
-      </li>
-    ))}
-  </ul>
-</div>
-
     </div>
   );
 };
