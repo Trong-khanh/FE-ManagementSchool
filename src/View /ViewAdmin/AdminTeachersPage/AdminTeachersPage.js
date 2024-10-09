@@ -17,7 +17,6 @@ import {
 } from "@mui/material";
 import NavBar from "../../NavBar";
 import "../AdminTeachersPageCSS/AdminTeachersPage.css";
-
 import {
   Table,
   TableBody,
@@ -40,6 +39,7 @@ const AdminTeachersPage = () => {
   const [assignment, setAssignment] = useState({
     teacherFullName: "",
     teacherEmail: "",
+    subjectName: "",
     className: "",
   });
   const [isDialogOpen, setDialogOpen] = useState({ type: "", open: false });
@@ -83,39 +83,8 @@ const AdminTeachersPage = () => {
     setErrorDialog({ open: false, message: "" });
   };
 
-  // Input validation functions
-  const isValidName = (name) => /^[A-Za-z\s]+$/.test(name);
-  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
   // Handle adding a new teacher
   const handleAddTeacher = async () => {
-    if (!isValidName(newTeacher.name)) {
-      showErrorDialog(
-        "Invalid teacher name. Only letters and spaces are accepted."
-      );
-      return;
-    }
-
-    if (!isValidEmail(newTeacher.email)) {
-      showErrorDialog("Invalid email.");
-      return;
-    }
-
-    const isDuplicateEmail = teachers.some(
-      (teacher) => teacher.email === newTeacher.email
-    );
-    if (isDuplicateEmail) {
-      showErrorDialog(
-        "Teacher email already exists, please enter another email."
-      );
-      return;
-    }
-
-    if (!newTeacher.subjectId) {
-      showErrorDialog("Please provide a subject ID.");
-      return;
-    }
-
     try {
       const addedTeacher = await addTeacher(newTeacher);
       setTeachers([...teachers, addedTeacher]);
@@ -132,6 +101,7 @@ const AdminTeachersPage = () => {
       setAssignment({
         teacherFullName: data.name,
         teacherEmail: data.email,
+        subjectName: data.subjectName,
         className: "",
       });
     } else if (type === "edit") {
@@ -149,18 +119,6 @@ const AdminTeachersPage = () => {
 
   // Handle assigning a teacher to a class
   const handleAssignTeacher = async () => {
-    if (!isValidName(assignment.teacherFullName)) {
-      showErrorDialog(
-        "Invalid teacher name. Only letters and spaces are accepted."
-      );
-      return;
-    }
-
-    if (!isValidEmail(assignment.teacherEmail)) {
-      showErrorDialog("Invalid email.");
-      return;
-    }
-
     if (!assignment.className) {
       showErrorDialog("Please enter class name.");
       return;
@@ -177,35 +135,6 @@ const AdminTeachersPage = () => {
 
   // Handle updating a teacher
   const handleUpdateTeacher = async () => {
-    if (!isValidName(editTeacher.name)) {
-      showErrorDialog(
-        "Invalid teacher name. Only letters and spaces are allowed."
-      );
-      return;
-    }
-
-    if (!isValidEmail(editTeacher.email)) {
-      showErrorDialog("Invalid email format.");
-      return;
-    }
-
-    const isDuplicateEmail = teachers.some(
-      (teacher) =>
-        teacher.email === editTeacher.email &&
-        teacher.teacherId !== editTeacher.teacherId
-    );
-    if (isDuplicateEmail) {
-      showErrorDialog(
-        "Teacher email already exists, please enter another email."
-      );
-      return;
-    }
-
-    if (!editTeacher.subjectId) {
-      showErrorDialog("Please provide a subject ID.");
-      return;
-    }
-
     try {
       await updateTeacher(editTeacher.teacherId, {
         name: editTeacher.name,
@@ -282,70 +211,68 @@ const AdminTeachersPage = () => {
           <Table>
             <TableHead>
               <TableRow>
-              <TableCell>Teacher Name</TableCell>
+                <TableCell>Teacher Name</TableCell>
                 <TableCell>Email</TableCell>
                 <TableCell>Subject</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-  {teachers.map((teacher) => (
-    <TableRow key={teacher.teacherId}>
-      <TableCell>{teacher.name}</TableCell> {/* Sửa ở đây */}
-      <TableCell>{teacher.email}</TableCell>
-      <TableCell>{teacher.subjectName}</TableCell>
-      <TableCell>
-        <Button onClick={() => handleOpenDialog("edit", teacher)}>
-          Edit
-        </Button>
-        <Button onClick={() => handleOpenDialog("delete", teacher)}>
-          Delete
-        </Button>
-        <Button onClick={() => handleOpenDialog("assign", teacher)}>
-          Assign Class
-        </Button>
-      </TableCell>
-    </TableRow>
-  ))}
-</TableBody>
-
+              {teachers.map((teacher) => (
+                <TableRow key={teacher.teacherId}>
+                  <TableCell>{teacher.name}</TableCell>
+                  <TableCell>{teacher.email}</TableCell>
+                  <TableCell>{teacher.subjectName}</TableCell>
+                  <TableCell>
+                    <Button onClick={() => handleOpenDialog("edit", teacher)}>
+                      Edit
+                    </Button>
+                    <Button onClick={() => handleOpenDialog("delete", teacher)}>
+                      Delete
+                    </Button>
+                    <Button onClick={() => handleOpenDialog("assign", teacher)}>
+                      Assign Class
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
           </Table>
         </TableContainer>
       </div>
 
       <div className="section assigned-teacher-list">
-  <h3>Assigned Teachers</h3>
-  <Button onClick={handleShowAssignedTeachers}>
-    Show Assigned Teachers
-  </Button>
-  {showAssignedTeachers && assignedTeachers.length > 0 ? (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Teacher Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Class Name</TableCell>
-            <TableCell>Subject</TableCell> {/* Thêm cột Subject */}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {assignedTeachers.map((assigned) => (
-            <TableRow key={assigned.id}>
-              <TableCell>{assigned.teacherFullName}</TableCell>
-              <TableCell>{assigned.teacherEmail}</TableCell>
-              <TableCell>{assigned.className}</TableCell>
-              <TableCell>{assigned.subjectName}</TableCell> {/* Thêm Subject */}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  ) : (
-    <p>No teachers assigned to any class yet.</p>
-  )}
-</div>
-
+        <h3>Assigned Teachers</h3>
+        <Button onClick={handleShowAssignedTeachers}>
+          Show Assigned Teachers
+        </Button>
+        {showAssignedTeachers && assignedTeachers.length > 0 ? (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Teacher Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Class Name</TableCell>
+                  <TableCell>Subject</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {assignedTeachers.map((assigned) => (
+                  <TableRow key={assigned.id}>
+                    <TableCell>{assigned.teacherFullName}</TableCell>
+                    <TableCell>{assigned.teacherEmail}</TableCell>
+                    <TableCell>{assigned.className}</TableCell>
+                    <TableCell>{assigned.subjectName}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <p>No teachers assigned to any class yet.</p>
+        )}
+      </div>
 
       <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
         {isDialogOpen.type === "assign" && (
@@ -368,8 +295,7 @@ const AdminTeachersPage = () => {
             </DialogActions>
           </>
         )}
-
-        {isDialogOpen.type === "edit" && editTeacher && (
+        {isDialogOpen.type === "edit" && (
           <>
             <DialogTitle>Edit Teacher</DialogTitle>
             <DialogContent>
@@ -401,12 +327,11 @@ const AdminTeachersPage = () => {
             </DialogActions>
           </>
         )}
-
-        {isDialogOpen.type === "delete" && deletingTeacher && (
+        {isDialogOpen.type === "delete" && (
           <>
             <DialogTitle>Delete Teacher</DialogTitle>
             <DialogContent>
-              Are you sure you want to delete {deletingTeacher.name}?
+              Are you sure you want to delete this teacher?
             </DialogContent>
             <DialogActions>
               <Button onClick={handleDeleteTeacher}>Delete</Button>
@@ -416,7 +341,6 @@ const AdminTeachersPage = () => {
         )}
       </Dialog>
 
-      {/* Dialog for error messages */}
       <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
         <DialogTitle>Error</DialogTitle>
         <DialogContent>{errorDialog.message}</DialogContent>
