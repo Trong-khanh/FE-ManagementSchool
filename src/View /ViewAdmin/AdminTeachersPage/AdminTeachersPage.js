@@ -84,16 +84,24 @@ const AdminTeachersPage = () => {
   };
 
   // Handle adding a new teacher
-  const handleAddTeacher = async () => {
-    try {
+// Handle adding a new teacher
+const handleAddTeacher = async () => {
+  // Kiểm tra nếu trường thông tin rỗng
+  if (!newTeacher.name || !newTeacher.email || !newTeacher.subjectId) {
+      showErrorDialog("Please enter full information.");
+      return;
+  }
+
+  try {
       const addedTeacher = await addTeacher(newTeacher);
       setTeachers([...teachers, addedTeacher]);
       setNewTeacher({ name: "", email: "", subjectId: "" });
       fetchAssignedTeachers();
-    } catch (error) {
-      showErrorDialog(error.message || "Failed to add teacher.");
-    }
-  };
+  } catch (error) {
+      showErrorDialog(error.message || "Fail Add Teachers.");
+  }
+};
+
 
   // Handle opening various dialogs (assign, edit, delete)
   const handleOpenDialog = (type, data) => {

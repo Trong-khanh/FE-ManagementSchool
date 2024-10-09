@@ -92,44 +92,14 @@ function NavBar({ searchQuery, onSearchChange }) {
           onClose={handleClose}
         >
           <Link
-            to="/admin/student"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <MenuItem onClick={handleClose}>Student</MenuItem>
-          </Link>
-          <Link
-            to="/admin/class"
+            to="/teacher/class"
             style={{ textDecoration: "none", color: "inherit" }}
           >
             <MenuItem onClick={handleClose}>Class</MenuItem>
           </Link>
-          <Link
-            to="/admin/parent"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <MenuItem onClick={handleClose}>Parent</MenuItem>
-          </Link>
-          <Link
-            to="/admin/teacher"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <MenuItem onClick={handleClose}>Teacher</MenuItem>
-          </Link>
-          <Link
-            to="/admin/semester"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <MenuItem onClick={handleClose}>Semester</MenuItem>
-          </Link>
-          <Link
-            to="/admin/course-fee"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <MenuItem onClick={handleClose}>Course Fee</MenuItem>
-          </Link>
 
           <Link
-            to="/admin/score"
+            to="/teacher/score"
             style={{ textDecoration: "none", color: "inherit" }}
           >
             <MenuItem onClick={handleClose}>Score</MenuItem>
