@@ -114,7 +114,7 @@ export const deleteTeacherById = async (teacherId) => {
 
 export const getAssignedTeachers = async () => {
   try {
-    const response = await adminApi.get("/Admin/GetTeacherClassAssignments");
+    const response = await adminApi.get("/Admin/GetTeacherClassAssigned");
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data || "Failed to fetch assigned teachers");

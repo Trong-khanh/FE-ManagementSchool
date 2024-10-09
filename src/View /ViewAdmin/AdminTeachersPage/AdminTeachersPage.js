@@ -314,33 +314,38 @@ const AdminTeachersPage = () => {
       </div>
 
       <div className="section assigned-teacher-list">
-        <h3>Assigned Teachers</h3>
-        <Button onClick={handleShowAssignedTeachers}>
-          Show Assigned Teachers
-        </Button>
-        {showAssignedTeachers && (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Teacher Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Class Name</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {assignedTeachers.map((assigned) => (
-                  <TableRow key={assigned.id}>
-                  <TableCell>{assigned.teacherFullName}</TableCell>
-                    <TableCell>{assigned.teacherEmail}</TableCell>
-                    <TableCell>{assigned.className}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
-      </div>
+  <h3>Assigned Teachers</h3>
+  <Button onClick={handleShowAssignedTeachers}>
+    Show Assigned Teachers
+  </Button>
+  {showAssignedTeachers && assignedTeachers.length > 0 ? (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Teacher Name</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>Class Name</TableCell>
+            <TableCell>Subject</TableCell> {/* Thêm cột Subject */}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {assignedTeachers.map((assigned) => (
+            <TableRow key={assigned.id}>
+              <TableCell>{assigned.teacherFullName}</TableCell>
+              <TableCell>{assigned.teacherEmail}</TableCell>
+              <TableCell>{assigned.className}</TableCell>
+              <TableCell>{assigned.subjectName}</TableCell> {/* Thêm Subject */}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  ) : (
+    <p>No teachers assigned to any class yet.</p>
+  )}
+</div>
+
 
       <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
         {isDialogOpen.type === "assign" && (
