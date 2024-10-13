@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./HomePage/HomePage";
 import LoginPage from "./Authentication/Login/LoginPage";
 import HomePageAdmin from "./HomePage/HomePageAdmin/HomePageAdmin";
-import RegisterPage from "./Authentication/SignUp/RegisterPage";
+import RegisterPage from "./Authentication/SignUp/RegisterPage"
 import ForgotPassword from "./ForgotPassword/ViewForgotPassword";
 import AdminStudentPage from "./View /ViewAdmin/AdminStudentPage/AdminStudentPage";
 import AdminSemesterPage from "./View /ViewAdmin/Semesters/AdminSemesterPage";

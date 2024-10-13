@@ -1,6 +1,5 @@
-// src/View/ViewTeacher/TeacherStudentPage/TeachersStudentPage.js
 import React from 'react';
-import NavBar from "../../Navbar2"; // Đảm bảo đường dẫn đúng
+import NavBar from "../../Navbar2"; 
 
 const TeachersStudentPage = () => {
     return (
