@@ -28,13 +28,22 @@ authApi.interceptors.response.use(
                     .then(tokenResponse => {
                         if (tokenResponse.data && tokenResponse.data.accessToken) {
                             localStorage.setItem('accessToken', tokenResponse.data.accessToken);
-                            console.log('New access token received: ', tokenResponse.data.accessToken);
                             authApi.defaults.headers['Authorization'] = `Bearer ${tokenResponse.data.accessToken}`;
-                            userApi.defaults.headers['Authorization'] = `Bearer ${tokenResponse.data.accessToken}`; // Cập nhật tiêu đề xác thực cho userApi
+                            userApi.defaults.headers['Authorization'] = `Bearer ${tokenResponse.data.accessToken}`;
                             originalRequest.headers['Authorization'] = `Bearer ${tokenResponse.data.accessToken}`;
                             return authApi(originalRequest);
                         }
-                    }).finally(() => {
+                    })
+                    .catch(refreshError => {
+                        // Nếu refresh token hết hạn (ví dụ: lỗi 403), yêu cầu người dùng đăng nhập lại
+                        if (refreshError.response?.status === 403) {
+                            console.error('Refresh token expired, logging out.');
+                            localStorage.clear(); // Xóa tất cả token
+                            window.location.href = '/login'; // Chuyển người dùng về trang đăng nhập
+                        }
+                        return Promise.reject(refreshError);
+                    })
+                    .finally(() => {
                         refreshingTokenPromise = null;
                     });
             }
@@ -44,27 +53,31 @@ authApi.interceptors.response.use(
     }
 );
 
+
 const login = async (credentials) => {
     try {
         const response = await authApi.post('/Authenticate/Login', credentials);
         localStorage.setItem('accessToken', response.data.accessToken);
         localStorage.setItem('refreshToken', response.data.refreshToken);
-        localStorage.setItem('user', response.data.user)
-        localStorage.setItem('role', response.data.role)
+        localStorage.setItem('user', response.data.user);
+        localStorage.setItem('role', response.data.role);
+
+        // Cập nhật ngay Authorization header cho các API
+        authApi.defaults.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
+        userApi.defaults.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
+
         console.log('User logged in successfully.');
         return response.data;
     } catch (error) {
         console.error('Error:', error);
-        // Check if the error has a response property
         if (error.response) {
-            // Handle HTTP errors
             throw new Error(error.response?.data?.message || "An error occurred during the login process.");
         } else {
-            // Handle network or other errors
             throw new Error("A network or unknown error occurred during the login process.");
         }
     }
 };
+
 
 const register = async (userData, role) => {
     try {

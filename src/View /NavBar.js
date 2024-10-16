@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   AppBar,
   Toolbar,
@@ -47,6 +48,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 function NavBar({ searchQuery, onSearchChange }) {
   const [anchorEl, setAnchorEl] = useState(null);
+  const navigate = useNavigate();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -54,6 +56,20 @@ function NavBar({ searchQuery, onSearchChange }) {
 
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleLogout = async () => {
+    const refreshToken = localStorage.getItem("refreshToken"); 
+    try {
+      
+
+      localStorage.clear();
+      
+      window.location.href = '/login';
+    } catch (error) {
+      console.error("Logout failed", error);
+      
+    }
   };
 
   return (
@@ -127,13 +143,14 @@ function NavBar({ searchQuery, onSearchChange }) {
           >
             <MenuItem onClick={handleClose}>Course Fee</MenuItem>
           </Link>
-
           <Link
             to="/admin/score"
             style={{ textDecoration: "none", color: "inherit" }}
           >
             <MenuItem onClick={handleClose}>Score</MenuItem>
           </Link>
+
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
