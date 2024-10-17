@@ -34,34 +34,80 @@ const ViewSemester = () => {
         return <div>{error}</div>;
     }
 
-    // UI to display the table of semesters
+    // Inline CSS styles
+    const containerStyles = {
+        margin: '20px', 
+    };
+
+    const tableStyles = {
+        width: '100%',
+        borderCollapse: 'collapse',
+        margin: '25px 0',
+        fontSize: '18px',
+        textAlign: 'left',
+        borderRadius: '8px',
+        overflow: 'hidden', 
+        
+    };
+
+    const thTdStyles = {
+        padding: '12px 15px',
+        color: '#000000', 
+    };
+
+    const theadStyles = {
+        backgroundColor: '#ffffff', 
+        color: '#000000',
+        textAlign: 'left',
+        fontWeight: 'bold',
+    };
+
+    const rowStyles = {
+        borderBottom: '1px solid #dddddd',
+    };
+
+    const evenRowStyles = {
+        backgroundColor: '#f3f3f3',
+    };
+
+    const hoverStyles = {
+        backgroundColor: '#f1f1f1',
+        cursor: 'pointer',
+    };
+
     return (
         <div>
-            {/* Include the Navbar2 component */}
             <Navbar2 />
 
             <h2>Semesters</h2>
             {semesters.length > 0 ? (
-                <table border="1" cellPadding="10" cellSpacing="0">
-                    <thead>
-                        <tr>
-                            <th>Semester ID</th>
-                            <th>Name</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {semesters.map((semester) => (
-                            <tr key={semester.semesterId}>
-                                <td>{semester.semesterId}</td>
-                                <td>{semester.name}</td>
-                                <td>{new Date(semester.startDate).toLocaleDateString()}</td>
-                                <td>{new Date(semester.endDate).toLocaleDateString()}</td>
+                <div style={containerStyles}> 
+                    <table style={tableStyles}>
+                        <thead>
+                            <tr style={theadStyles}>
+                                <th style={thTdStyles}>Semester ID</th>
+                                <th style={thTdStyles}>Name</th>
+                                <th style={thTdStyles}>Start Date</th>
+                                <th style={thTdStyles}>End Date</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {semesters.map((semester, index) => (
+                                <tr
+                                    key={semester.semesterId}
+                                    style={index % 2 === 0 ? evenRowStyles : {}}
+                                    onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverStyles.backgroundColor)}
+                                    onMouseOut={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? evenRowStyles.backgroundColor : '')}
+                                >
+                                    <td style={thTdStyles}>{semester.semesterId}</td>
+                                    <td style={thTdStyles}>{semester.name}</td>
+                                    <td style={thTdStyles}>{new Date(semester.startDate).toLocaleDateString()}</td>
+                                    <td style={thTdStyles}>{new Date(semester.endDate).toLocaleDateString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             ) : (
                 <p>No semesters found.</p>
             )}

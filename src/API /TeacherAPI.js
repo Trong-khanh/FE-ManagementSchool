@@ -53,16 +53,23 @@ const ViewAllSemesters = async() =>{
         throw error;
     }
 }
-
-const AddScore = async (scoreDto) => {
+const AssignedClassesStudents = async (teacherEmail) => {
     try {
-        const response = await userApi.post('/Teacher/AddScore', scoreDto);
+        const response = await userApi.get(`/Teacher/GetStudentsInAssignedClasses`, {
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('accessToken')}` // Thêm token vào header
+            },
+            params: {
+                email: teacherEmail // Thêm email như tham số truy vấn
+            }
+        });
         return response.data;
     } catch (error) {
-        console.error('Error adding score', error);
+        console.error('Error', error);
         throw error;
     }
 };
 
-export { ViewAllSemesters, AddScore };
+
+export { ViewAllSemesters, AssignedClassesStudents };
 
