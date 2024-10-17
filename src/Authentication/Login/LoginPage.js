@@ -48,7 +48,7 @@ const SignInSide = () => {
         if (userRole === "Admin") {
           navigate("/admin");
         } else if (userRole === "Teacher") {
-          navigate("/teacher/student");
+          navigate("/teacher");
         } else if (userRole === "Student") {
           navigate("/student/home");
         } else if (userRole === "Parent") {

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -48,7 +47,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 function NavBar({ searchQuery, onSearchChange }) {
   const [anchorEl, setAnchorEl] = useState(null);
-  const navigate = useNavigate();
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -59,16 +57,12 @@ function NavBar({ searchQuery, onSearchChange }) {
   };
 
   const handleLogout = async () => {
-    const refreshToken = localStorage.getItem("refreshToken"); 
     try {
-      
-
       localStorage.clear();
-      
-      window.location.href = '/login';
+
+      window.location.href = "/login";
     } catch (error) {
       console.error("Logout failed", error);
-      
     }
   };
 

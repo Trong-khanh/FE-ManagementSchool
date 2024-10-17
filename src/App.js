@@ -8,7 +8,9 @@ import ForgotPassword from "./ForgotPassword/ViewForgotPassword";
 import AdminStudentPage from "./View /ViewAdmin/AdminStudentPage/AdminStudentPage";
 import AdminSemesterPage from "./View /ViewAdmin/Semesters/AdminSemesterPage";
 import AdminTeachersPage from "./View /ViewAdmin/AdminTeachersPage/AdminTeachersPage";
-import TeachersStudentPage from "./View /ViewTeacher/TeacherStudentPage/TeachersStudentPage";
+import Viewteacher from "./View /ViewTeacher/Viewteacher";
+import ViewSemester from "./View /ViewTeacher/ViewSemester";
+import ViewScore from "./View /ViewTeacher/ViewScore";
 
 function App() {
   return (
@@ -22,7 +24,9 @@ function App() {
         <Route path="/admin" element={<HomePageAdmin />} />
         <Route path="/admin/student" element={<AdminStudentPage />} />
         <Route path="/admin/semester" element={<AdminSemesterPage />} />
-        <Route path="/teacher/student" element={<TeachersStudentPage />} />
+        <Route path="/teacher" element={<Viewteacher />} />
+        <Route path="/teacher/semester" element={<ViewSemester />} />
+        <Route path="/teacher/score" element={<ViewScore />} />
       </Routes>
     </BrowserRouter>
   );

@@ -56,6 +56,15 @@ function NavBar({ searchQuery, onSearchChange }) {
     setAnchorEl(null);
   };
 
+  const handleLogout = async () => {
+    try {
+      localStorage.clear();
+
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
   return (
     <AppBar
       position="static"
@@ -104,6 +113,15 @@ function NavBar({ searchQuery, onSearchChange }) {
           >
             <MenuItem onClick={handleClose}>Score</MenuItem>
           </Link>
+
+          <Link
+            to="/teacher/semester"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <MenuItem onClick={handleClose}>Semester</MenuItem>
+          </Link>
+
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
       </Toolbar>
     </AppBar>
