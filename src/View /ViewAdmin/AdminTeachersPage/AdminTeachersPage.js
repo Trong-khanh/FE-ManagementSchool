@@ -83,27 +83,24 @@ const AdminTeachersPage = () => {
     setErrorDialog({ open: false, message: "" });
   };
 
-  // Handle adding a new teacher
 // Handle adding a new teacher
 const handleAddTeacher = async () => {
-  // Kiểm tra nếu trường thông tin rỗng
   if (!newTeacher.name || !newTeacher.email || !newTeacher.subjectId) {
-      showErrorDialog("Please enter full information.");
-      return;
+    showErrorDialog("Please enter full information.");
+    return;
   }
 
   try {
-      const addedTeacher = await addTeacher(newTeacher);
-      setTeachers([...teachers, addedTeacher]);
-      setNewTeacher({ name: "", email: "", subjectId: "" });
-      fetchAssignedTeachers();
+    await addTeacher(newTeacher);
+    setNewTeacher({ name: "", email: "", subjectId: "" });
+    await fetchTeachers(); // Fetch updated list of teachers
+    await fetchAssignedTeachers(); // Optional: if you want to update assigned teachers as well
   } catch (error) {
-      showErrorDialog(error.message || "Fail Add Teachers.");
+    console.error("Add Teacher Error:", error); // Log error details
+    showErrorDialog(error.message || "Failed to add teacher.");
   }
 };
 
-
-  // Handle opening various dialogs (assign, edit, delete)
   const handleOpenDialog = (type, data) => {
     if (type === "assign") {
       setAssignment({
@@ -141,34 +138,49 @@ const handleAddTeacher = async () => {
     }
   };
 
-  // Handle updating a teacher
-  const handleUpdateTeacher = async () => {
-    try {
-      await updateTeacher(editTeacher.teacherId, {
-        name: editTeacher.name,
-        email: editTeacher.email,
-        subjectId: editTeacher.subjectId,
-      });
-      fetchTeachers();
-      handleCloseDialog();
-    } catch (error) {
-      showErrorDialog(error.message || "Failed to update teacher.");
-    }
-  };
+// Handle updating a teacher
+const handleUpdateTeacher = async () => {
+  if (!editTeacher || !editTeacher.teacherId) {
+    showErrorDialog("Teacher ID is missing.");
+    return;
+  }
+
+  try {
+    await updateTeacher(editTeacher.teacherId, {
+      name: editTeacher.name,
+      email: editTeacher.email,
+      subjectId: editTeacher.subjectId,
+    });
+    
+    await fetchTeachers(); // Fetch updated list of teachers
+    handleCloseDialog();
+  } catch (error) {
+    console.error("Update Teacher Error:", error);
+    showErrorDialog(error.message || "Failed to update teacher.");
+  }
+};
 
   // Handle deleting a teacher
   const handleDeleteTeacher = async () => {
-    if (!deletingTeacher) {
+    if (!deletingTeacher || !deletingTeacher.teacherId) {
       showErrorDialog("No teacher selected for deletion.");
       return;
     }
 
     try {
       await deleteTeacherById(deletingTeacher.teacherId);
-      fetchTeachers();
+
+      // Cập nhật lại danh sách giáo viên sau khi xóa
+      setTeachers((prevTeachers) =>
+        prevTeachers.filter(
+          (teacher) => teacher.teacherId !== deletingTeacher.teacherId
+        )
+      );
+
       fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
+      console.error("Delete Teacher Error:", error);
       showErrorDialog(error.message || "Failed to delete teacher.");
     }
   };
