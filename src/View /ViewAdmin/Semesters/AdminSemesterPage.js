@@ -1,135 +1,165 @@
-import React, { useState, useEffect } from "react";
-import SemesterForm from "./SemesterForm";
-import SemesterList from "./SemesterList";
-import NavBar from "../../NavBar";
+import React, { useEffect, useState } from 'react';
 import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Button,
-} from "@mui/material";
-import "../SemestersCSS/AdminSemesterPage.css";
-import {
-  addSemester,
-  getAllSemesters,
-  updatedSemester,
-  deleteSemester,
-} from "../../../API /CRUDSemesterAPI"; 
+    addSemester,
+    getAllSemesters,
+    updatedSemester,
+    deleteSemester,
+} from '../../../API /CRUDSemesterAPI';
 
-function AdminSemesterPage() {
-  const [semesters, setSemesters] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [editingSemester, setEditingSemester] = useState(null);
-  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-  const [deletingSemester, setDeletingSemester] = useState(null);
+const AdminSemesterPage = () => {
+    const [semesters, setSemesters] = useState([]);
+    const [form, setForm] = useState({
+        SemesterType: '',
+        StartDate: '',
+        EndDate: '',
+        AcademicYear: '',
+    });
+    const [editingSemesterId, setEditingSemesterId] = useState(null);
 
-  useEffect(() => {
-    fetchSemesters();
-  }, []);
-
-  // Fetch all semesters from the backend
-  const fetchSemesters = async () => {
-    try {
-      const semesterData = await getAllSemesters();
-      setSemesters(semesterData);
-    } catch (error) {
-      console.error("An error occurred while retrieving the semester list:", error);
-    }
-  };
-
-  // Add or Update Semester
-  const handleAddOrUpdateSemester = async (semester) => {
-    try {
-      if (editingSemester) {
-        await updatedSemester(editingSemester.semesterId, semester); // Call API to update
-      } else {
-        await addSemester(semester); // Call API to add new
+    useEffect(() => {
+        fetchSemesters();
+    }, []);
+    const fetchSemesters = async () => {
+      try {
+          const data = await getAllSemesters();
+          console.log('Fetched Semesters:', data); // Log fetched data
+          setSemesters(data);
+      } catch (error) {
+          console.error('Error fetching semesters:', error); // Log any errors
       }
-      fetchSemesters(); // Refresh semester list
-      setEditingSemester(null); // Reset form
-    } catch (error) {
-      console.error(editingSemester ? "An error occurred while updating the semester:" : "An error occurred while adding a semester:", error);
-    }
   };
+  
 
-  // Handle edit action
-  const handleEdit = (semester) => {
-    setEditingSemester(semester);
-  };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });
+    };
 
-  // Open delete confirmation dialog
-  const handleOpenConfirmDialog = (semester) => {
-    setDeletingSemester(semester);
-    setOpenConfirmDialog(true);
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        console.log('Submitting Semester:', form); // Log submitted data
+        try {
+            if (editingSemesterId) {
+                await updatedSemester(editingSemesterId, form);
+            } else {
+                await addSemester(form);
+            }
+            setForm({ SemesterType: '', StartDate: '', EndDate: '', AcademicYear: '' });
+            setEditingSemesterId(null);
+            fetchSemesters();
+        } catch (error) {
+            console.error('Error submitting semester:', error);
+        }
+    };
 
-  // Close delete confirmation dialog
-  const handleCloseConfirmDialog = () => {
-    setOpenConfirmDialog(false);
-    setDeletingSemester(null);
-  };
+    const handleEdit = (semester) => {
+        setForm({
+            SemesterType: semester.semesterType,
+            StartDate: semester.startDate, // Để định dạng dd/mm/yyyy, có thể sử dụng hàm formatDate
+            EndDate: semester.endDate, // Để định dạng dd/mm/yyyy, có thể sử dụng hàm formatDate
+            AcademicYear: semester.academicYear,
+        });
+        setEditingSemesterId(semester.semesterId);
+    };
 
-  // Confirm and delete semester
-  const handleConfirmDelete = async () => {
-    if (!deletingSemester) return;
-    try {
-      await deleteSemester(deletingSemester.semesterId); // Call API to delete
-      fetchSemesters(); // Refresh semester list
-    } catch (error) {
-      console.error("error when deleting a semester:", error);
-    }
-    handleCloseConfirmDialog();
-  };
+    const handleDelete = async (id) => {
+        console.log('Deleting Semester ID:', id); // Log deletion ID
+        try {
+            await deleteSemester(id);
+            fetchSemesters();
+        } catch (error) {
+            console.error('Error deleting semester:', error);
+        }
+    };
 
-  // Search handler
-  const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-  };
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+    };
 
-  return (
-    <div className="admin-semester-page">
-      <div className="nav-bar">
-        <NavBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
-      </div>
-      <div className="content">
-        <div className="form-container">
-          <SemesterForm
-            onAddSemester={handleAddOrUpdateSemester}
-            editingSemester={editingSemester}
-          />
+    return (
+        <div className="admin-semester-page">
+            <h2>Quản Lý Học Kỳ</h2>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>Loại Học Kỳ:</label>
+                    <select
+                        name="SemesterType"
+                        value={form.SemesterType}
+                        onChange={handleChange}
+                        required
+                    >
+                        <option value="">Chọn Học Kỳ</option>
+                        <option value="Semester1">Học Kỳ 1</option>
+                        <option value="Semester2">Học Kỳ 2</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Ngày Bắt Đầu:</label>
+                    <input
+                        type="text"
+                        name="StartDate"
+                        value={form.StartDate}
+                        onChange={handleChange}
+                        placeholder="Ngày Bắt Đầu (dd/mm/yyyy)"
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Ngày Kết Thúc:</label>
+                    <input
+                        type="text"
+                        name="EndDate"
+                        value={form.EndDate}
+                        onChange={handleChange}
+                        placeholder="Ngày Kết Thúc (dd/mm/yyyy)"
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Năm Học:</label>
+                    <input
+                        type="text"
+                        name="AcademicYear"
+                        value={form.AcademicYear}
+                        onChange={handleChange}
+                        placeholder="Năm Học"
+                        required
+                    />
+                </div>
+                <button type="submit">
+                    {editingSemesterId ? 'Cập Nhật' : 'Thêm'}
+                </button>
+            </form>
+
+            <h3>Danh Sách Học Kỳ</h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                    <tr>
+                        <th style={{ border: '1px solid black', padding: '8px' }}>Loại Học Kỳ</th>
+                        <th style={{ border: '1px solid black', padding: '8px' }}>Ngày Bắt Đầu</th>
+                        <th style={{ border: '1px solid black', padding: '8px' }}>Ngày Kết Thúc</th>
+                        <th style={{ border: '1px solid black', padding: '8px' }}>Năm Học</th>
+                        <th style={{ border: '1px solid black', padding: '8px' }}>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {semesters.map((semester) => (
+                        <tr key={semester.semesterId}>
+                            <td style={{ border: '1px solid black', padding: '8px' }}>{semester.semesterType}</td>
+                            <td style={{ border: '1px solid black', padding: '8px' }}>{formatDate(semester.startDate)}</td>
+                            <td style={{ border: '1px solid black', padding: '8px' }}>{formatDate(semester.endDate)}</td>
+                            <td style={{ border: '1px solid black', padding: '8px' }}>{semester.academicYear}</td>
+                            <td style={{ border: '1px solid black', padding: '8px' }}>
+                                <button onClick={() => handleEdit(semester)}>Sửa</button>
+                                <button onClick={() => handleDelete(semester.semesterId)}>Xóa</button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
         </div>
-        <div className="list-container">
-          <SemesterList
-            semesters={semesters.filter((semester) =>
-              semester.name.toLowerCase().includes(searchQuery.toLowerCase())
-            )}
-            onEdit={handleEdit}
-            onDelete={handleOpenConfirmDialog}
-          />
-        </div>
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
-        <DialogTitle>{"Confirm Delete"}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-          Are you sure you want to delete the semester? {deletingSemester?.name}? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseConfirmDialog} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmDelete} color="primary" autoFocus>
-            Confirm 
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
-  );
-}
+    );
+};
 
 export default AdminSemesterPage;

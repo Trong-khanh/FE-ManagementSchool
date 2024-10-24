@@ -119,7 +119,7 @@ const ViewClass = () => {
                         id="class-select"
                         value={selectedClass}
                         onChange={(e) => setSelectedClass(e.target.value)}
-                        style={dropdownStyles} // Apply styles to the dropdown
+                        style={dropdownStyles}
                     >
                         <option value="">All Classes</option>
                         {classOptions.map((className, index) => (
@@ -141,10 +141,6 @@ const ViewClass = () => {
                         <thead>
                             <tr style={theadStyles}>
                                 <th style={thTdStyles}>Student Name</th>
-                                <th style={thTdStyles}>Subject Name</th> {/* Make sure this is displayed */}
-                                <th style={thTdStyles}>Score</th>
-                                <th style={thTdStyles}>Exam Type</th>
-                                <th style={thTdStyles}>Semester</th>
                                 <th style={thTdStyles}>Class</th>
                             </tr>
                         </thead>
@@ -161,16 +157,12 @@ const ViewClass = () => {
                                         onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverStyles.backgroundColor)}
                                         onMouseOut={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? evenRowStyles.backgroundColor : '')}
                                     >
-                                        <td style={thTdStyles}>{classInfo.studentFullName}</td>
-                                        <td style={thTdStyles}>{classInfo.subjectName}</td> {/* Display subject name */}
-                                        <td style={thTdStyles}>{classInfo.scoreValue}</td>
-                                        <td style={thTdStyles}>{classInfo.examType}</td>
-                                        <td style={thTdStyles}>{classInfo.semester || 'N/A'}</td>
-                                        <td style={thTdStyles}>{classInfo.className}</td>
+                                        <td style={thTdStyles}>{classInfo.studentFullName }</td>
+                                        <td style={thTdStyles}>{classInfo.className }</td>
                                     </tr>
                                 ))
                             ) : (
-                                <tr><td colSpan="6">No student data available</td></tr>
+                                <tr><td colSpan="2">No student data available</td></tr>
                             )}
                         </tbody>
                     </table>

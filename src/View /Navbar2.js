@@ -108,6 +108,13 @@ function NavBar({ searchQuery, onSearchChange }) {
           </Link>
 
           <Link
+            to="/teacher/score"
+            style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <MenuItem onClick={handleClose}>Score</MenuItem>
+          </Link>
+
+          <Link
             to="/teacher/semester"
             style={{ textDecoration: "none", color: "inherit" }}
           >

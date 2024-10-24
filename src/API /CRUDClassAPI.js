@@ -58,48 +58,52 @@ userApi.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
-const addSemester = async (semesterData) => {
+// Create Class
+export const addClass = async (newClass) => {
     try {
-        const response = await userApi.post(`/Admin/AddSemester`, semesterData);
-        console.log("User data: ", response.data);
-        return response.data;
+        const response = await userApi.post('Admin/AddClass', newClass);
+        return response.data; // Return the created class
     } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    } 
-};
-
-const getAllSemesters = async () => {
-    try {
-        const response = await userApi.get(`/Admin/GetAllSemesters`);
-        return response.data;
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
+        throw error.response.data; // Handle error appropriately
     }
 };
 
-const updatedSemester = async (semesterId, updatedSemesterData) => {
+// Read All Classes
+export const getAllClasses = async () => {
     try {
-        const response = await userApi.put(`/Admin/UpdateSemester/${semesterId}`, updatedSemesterData);
-        console.log("Semester updated successfully:", response.data);
-        return response.data;
+        const response = await userApi.get('Admin/GetAllClasses');
+        return response.data; // Return the list of classes
     } catch (error) {
-        console.error('Error updating semester:', error);
-        throw error;
+        throw error.response.data; // Handle error appropriately
     }
 };
 
-const deleteSemester = async (semesterId) => {
+// Read One Class
+export const getClassById = async (id) => {
     try {
-        const response = await userApi.delete(`/Admin/DeleteSemesters/${semesterId}`);
-        console.log("Semester deleted successfully:", response.data);
-        return response.data;
+        const response = await userApi.get(`Admin/GetClass/${id}`);
+        return response.data; // Return the class details
     } catch (error) {
-        console.error('Error deleting semester:', error);
-        throw error;
+        throw error.response.data; // Handle error appropriately
     }
 };
 
-export {addSemester, getAllSemesters, updatedSemester, deleteSemester}
+// Update Class
+export const updateClass = async (id, updatedClass) => {
+    try {
+        const response = await userApi.put(`Admin/UpdateClass/${id}`, updatedClass);
+        return response.data; // Return the updated class
+    } catch (error) {
+        throw error.response.data; // Handle error appropriately
+    }
+};
+
+// Delete Class
+export const deleteClass = async (id) => {
+    try {
+        const response = await userApi.delete(`Admin/DeleteClass/${id}`);
+        return response.data; // Return success message
+    } catch (error) {
+        throw error.response.data; // Handle error appropriately
+    }
+};

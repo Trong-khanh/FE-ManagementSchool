@@ -56,14 +56,6 @@ function AdminStudentPage() {
     const handleSubmit = async (e) => {
       e.preventDefault();
   
-      // Kiểm tra tính hợp lệ của academicYear
-      const academicYearRegex = /^\d{4}\s-\s\d{4}$/;
-      if (!academicYearRegex.test(formData.academicYear)) {
-          setErrorMessage("Invalid school year. Please enter in YYYY - YYYY format.");
-          setOpenErrorDialog(true);
-          return; // Ngăn không cho tiếp tục nếu có lỗi
-      }
-  
       try {
           if (editingIndex === null) {
               await addStudent(formData);

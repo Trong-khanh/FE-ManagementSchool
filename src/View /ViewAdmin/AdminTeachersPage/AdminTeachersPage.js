@@ -94,7 +94,7 @@ const handleAddTeacher = async () => {
     await addTeacher(newTeacher);
     setNewTeacher({ name: "", email: "", subjectId: "" });
     await fetchTeachers(); // Fetch updated list of teachers
-    await fetchAssignedTeachers(); // Optional: if you want to update assigned teachers as well
+    await fetchAssignedTeachers(); 
   } catch (error) {
     console.error("Add Teacher Error:", error); // Log error details
     showErrorDialog(error.message || "Failed to add teacher.");

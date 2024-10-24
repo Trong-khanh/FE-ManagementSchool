@@ -12,6 +12,7 @@ const ViewSemester = () => {
         try {
             const data = await ViewAllSemesters();
             setSemesters(data);
+            console.log(data);
             setLoading(false);
         } catch (err) {
             setError('Failed to fetch semesters');
@@ -47,7 +48,6 @@ const ViewSemester = () => {
         textAlign: 'left',
         borderRadius: '8px',
         overflow: 'hidden', 
-        
     };
 
     const thTdStyles = {
@@ -89,6 +89,7 @@ const ViewSemester = () => {
                                 <th style={thTdStyles}>Name</th>
                                 <th style={thTdStyles}>Start Date</th>
                                 <th style={thTdStyles}>End Date</th>
+                                <th style={thTdStyles}>Academic Year</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,6 +104,7 @@ const ViewSemester = () => {
                                     <td style={thTdStyles}>{semester.name}</td>
                                     <td style={thTdStyles}>{new Date(semester.startDate).toLocaleDateString()}</td>
                                     <td style={thTdStyles}>{new Date(semester.endDate).toLocaleDateString()}</td>
+                                    <td style={thTdStyles}>{semester.academicYear}</td> {/* Displaying Academic Year */}
                                 </tr>
                             ))}
                         </tbody>
