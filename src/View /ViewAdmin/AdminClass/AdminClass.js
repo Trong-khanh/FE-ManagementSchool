@@ -101,13 +101,13 @@ const AdminClass = () => {
             {loading && <div>Loading...</div>}
 
             {/* Add Class Form */}
-            <div style={{ display: 'flex', marginBottom: '20px' }}>
+            <div style={{ marginBottom: '20px'}}>
                 <input
                     type="text"
                     value={newClass.className}
                     onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
                     placeholder="Class Name"
-                    style={{ marginRight: '10px', flex: 1 }}
+                    style={{ marginRight: '10px',flex: 1 }}
                 />
                 <button onClick={handleAddClass} disabled={loading}>Add Class</button>
             </div>
@@ -129,7 +129,7 @@ const AdminClass = () => {
 
             {/* Class List Table */}
             <h2>Class List</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{  borderCollapse: 'collapse' }}>
                 <thead>
                     <tr style={{ backgroundColor: '#f2f2f2' }}>
                         <th style={{ border: '1px solid #ddd', padding: '8px' }}>Class Name</th>

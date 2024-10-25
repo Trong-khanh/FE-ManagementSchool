@@ -11,14 +11,16 @@ const ViewSemester = () => {
     const fetchSemesters = async () => {
         try {
             const data = await ViewAllSemesters();
+            console.log("Fetched semesters:", data);
             setSemesters(data);
-            console.log(data);
             setLoading(false);
         } catch (err) {
+            console.error("Failed to fetch semesters:", err);
             setError('Failed to fetch semesters');
             setLoading(false);
         }
     };
+    
 
     // Call the handler on component mount
     useEffect(() => {

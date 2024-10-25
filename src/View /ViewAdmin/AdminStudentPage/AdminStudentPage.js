@@ -32,8 +32,8 @@ function AdminStudentPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [deletingIndex, setDeletingIndex] = useState(null);
-    const [openErrorDialog, setOpenErrorDialog] = useState(false); // State cho Dialog lỗi
-    const [errorMessage, setErrorMessage] = useState(""); // State cho thông điệp lỗi
+    const [openErrorDialog, setOpenErrorDialog] = useState(false); 
+    const [errorMessage, setErrorMessage] = useState(""); 
 
     useEffect(() => {
         fetchListStudent();

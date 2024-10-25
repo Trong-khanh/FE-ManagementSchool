@@ -4,7 +4,8 @@ import {
     getAllSemesters,
     updatedSemester,
     deleteSemester,
-} from '../../../API /CRUDSemesterAPI';
+} from '../../../API /CRUDSemesterAPI'; 
+import NavBar from '../../NavBar'; 
 
 const AdminSemesterPage = () => {
     const [semesters, setSemesters] = useState([]);
@@ -15,20 +16,21 @@ const AdminSemesterPage = () => {
         AcademicYear: '',
     });
     const [editingSemesterId, setEditingSemesterId] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         fetchSemesters();
     }, []);
+
     const fetchSemesters = async () => {
-      try {
-          const data = await getAllSemesters();
-          console.log('Fetched Semesters:', data); // Log fetched data
-          setSemesters(data);
-      } catch (error) {
-          console.error('Error fetching semesters:', error); // Log any errors
-      }
-  };
-  
+        try {
+            const data = await getAllSemesters();
+            console.log('Fetched Semesters:', data);
+            setSemesters(data);
+        } catch (error) {
+            console.error('Error fetching semesters:', error);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -37,12 +39,21 @@ const AdminSemesterPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Submitting Semester:', form); // Log submitted data
+        console.log('Submitting Semester:', form);
         try {
+            const formattedStartDate = new Date(form.StartDate.split('/').reverse().join('-')).toISOString().split('T')[0];
+            const formattedEndDate = new Date(form.EndDate.split('/').reverse().join('-')).toISOString().split('T')[0];
+
+            const dataToSend = {
+                ...form,
+                StartDate: formattedStartDate,
+                EndDate: formattedEndDate,
+            };
+
             if (editingSemesterId) {
-                await updatedSemester(editingSemesterId, form);
+                await updatedSemester(editingSemesterId, dataToSend);
             } else {
-                await addSemester(form);
+                await addSemester(dataToSend);
             }
             setForm({ SemesterType: '', StartDate: '', EndDate: '', AcademicYear: '' });
             setEditingSemesterId(null);
@@ -55,15 +66,15 @@ const AdminSemesterPage = () => {
     const handleEdit = (semester) => {
         setForm({
             SemesterType: semester.semesterType,
-            StartDate: semester.startDate, // Để định dạng dd/mm/yyyy, có thể sử dụng hàm formatDate
-            EndDate: semester.endDate, // Để định dạng dd/mm/yyyy, có thể sử dụng hàm formatDate
+            StartDate: formatDate(semester.startDate),
+            EndDate: formatDate(semester.endDate),
             AcademicYear: semester.academicYear,
         });
         setEditingSemesterId(semester.semesterId);
     };
 
     const handleDelete = async (id) => {
-        console.log('Deleting Semester ID:', id); // Log deletion ID
+        console.log('Deleting Semester ID:', id);
         try {
             await deleteSemester(id);
             fetchSemesters();
@@ -79,6 +90,7 @@ const AdminSemesterPage = () => {
 
     return (
         <div className="admin-semester-page">
+            <NavBar searchQuery={searchQuery} onSearchChange={(e) => setSearchQuery(e.target.value)} />
             <h2>Quản Lý Học Kỳ</h2>
             <form onSubmit={handleSubmit}>
                 <div>
@@ -90,8 +102,8 @@ const AdminSemesterPage = () => {
                         required
                     >
                         <option value="">Chọn Học Kỳ</option>
-                        <option value="Semester1">Học Kỳ 1</option>
-                        <option value="Semester2">Học Kỳ 2</option>
+                        <option value="Semester1">Semester 1</option>
+                        <option value="Semester2">Semester 2</option>
                     </select>
                 </div>
                 <div>

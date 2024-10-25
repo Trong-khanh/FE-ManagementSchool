@@ -1,175 +1,136 @@
-import React, { useEffect, useState } from 'react';
-import { ViewAllSemesters, AssignedClassesStudents } from '../../API /TeacherAPI'; 
-import Navbar2 from '../Navbar2';
+import React, { useEffect, useState } from "react";
+import { AssignedClassesStudents } from "../../API /TeacherAPI";
+import Navbar2 from "../Navbar2";
 
 const ViewClass = () => {
-    const [semesters, setSemesters] = useState([]);
-    const [assignedClasses, setAssignedClasses] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedClass, setSelectedClass] = useState(''); 
-    const teacherEmail = localStorage.getItem('teacherEmail');
+  const [assignedClasses, setAssignedClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedClass, setSelectedClass] = useState("");
 
-    useEffect(() => {
-        const fetchSemesters = async () => {
-            try {
-                const data = await ViewAllSemesters();
-                setSemesters(data);
-            } catch (err) {
-                console.error('Error fetching semesters:', err);
-                setError(err.message || 'Error fetching semesters'); 
-            }
-        };
+  useEffect(() => {
+    const fetchAssignedClasses = async () => {
+      setLoading(true);
+      try {
+        const teacherEmail = localStorage.getItem("teacherEmail");
+        console.log("Fetching data for teacher:", teacherEmail);
 
-        const fetchAssignedClasses = async () => {
-            setLoading(true);
-            try {
-                const data = await AssignedClassesStudents(teacherEmail);
-                console.log('Assigned Classes Data:', data);
-                setAssignedClasses(data);
-            } catch (err) {
-                console.error('Error fetching assigned classes:', err);
-                setError(err.message || 'Error fetching assigned classes');
-            } finally {
-                setLoading(false);
-            }
-        };
+        const data = await AssignedClassesStudents(teacherEmail);
+        console.log("Received data:", data);
 
-        console.log('Teacher Email:', teacherEmail); 
-
-        fetchSemesters();
-        fetchAssignedClasses();
-    }, [teacherEmail]);
-
-    // Filter students by the selected class
-    const filteredClasses = selectedClass
-        ? assignedClasses.filter(classInfo => classInfo.className === selectedClass)
-        : assignedClasses;
-
-    // Get unique list of classes
-    const classOptions = assignedClasses.length > 0
-        ? [...new Set(assignedClasses.map(classInfo => classInfo.className))]
-        : []; 
-
-    // Inline CSS styles
-    const containerStyles = {
-        margin: '20px', 
+        if (Array.isArray(data)) {
+          setAssignedClasses(data);
+        } else {
+          console.error("Unexpected data format:", data);
+          setError("Received invalid data format");
+        }
+      } catch (err) {
+        console.error("Error:", err);
+        setError(err.message || "Failed to fetch student data");
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const tableStyles = {
-        width: '100%',
-        borderCollapse: 'collapse',
-        margin: '25px 0',
-        fontSize: '18px',
-        textAlign: 'left',
-        borderRadius: '8px',
-        overflow: 'hidden',
-    };
+    fetchAssignedClasses();
+  }, []); // Run once when component mounts
 
-    const thTdStyles = {
-        padding: '12px 15px',
-        color: '#000000', 
-    };
+  // Get unique class names for dropdown
+  const classOptions = [...new Set(assignedClasses.map(student => student.className))];
 
-    const theadStyles = {
-        backgroundColor: '#ffffff',
-        color: '#000000',
-        textAlign: 'left',
-        fontWeight: 'bold',
-    };
+  // Filter students by selected class
+  const filteredStudents = selectedClass
+    ? assignedClasses.filter(student => student.className === selectedClass)
+    : assignedClasses;
 
-    const rowStyles = {
-        borderBottom: '1px solid #dddddd',
-    };
+  return (
+    <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb", padding: "0" }}>
+      <Navbar2 />
 
-    const evenRowStyles = {
-        backgroundColor: '#f3f3f3',
-    };
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px" }}>
+        <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "24px" }}>
+          Assigned Classes
+        </h2>
 
-    const hoverStyles = {
-        backgroundColor: '#f1f1f1',
-        cursor: 'pointer',
-    };
-
-    const dropdownContainerStyles = {
-        marginLeft: '20px', // Indent label
-    };
-
-    const labelStyles = {
-        fontSize: '20px', // Increased font size for the label
-        marginRight: '10px', // Space between label and dropdown
-    };
-
-    const dropdownStyles = {
-        padding: '10px', 
-        fontSize: '16px', 
-        margin: '20px 0',  
-    };
-
-    return (
-        <div>
-            <Navbar2 />
-            <h2>Assigned Students List</h2>
-
-            {/* Dropdown to select class */}
-            {classOptions.length > 0 ? (
-                <div style={dropdownContainerStyles}>
-                    <label htmlFor="class-select" style={labelStyles}>Select Class: </label>
-                    <select
-                        id="class-select"
-                        value={selectedClass}
-                        onChange={(e) => setSelectedClass(e.target.value)}
-                        style={dropdownStyles}
-                    >
-                        <option value="">All Classes</option>
-                        {classOptions.map((className, index) => (
-                            <option key={index} value={className}>{className}</option>
-                        ))}
-                    </select>
-                </div>
-            ) : (
-                <p>No classes available</p>
-            )}
-
-            {loading ? (
-                <p>Loading...</p>
-            ) : error ? (
-                <p>Error loading data: {error}</p> // Show detailed error message
-            ) : (
-                <div style={containerStyles}> {/* Apply margin to the table container */}
-                    <table style={tableStyles}>
-                        <thead>
-                            <tr style={theadStyles}>
-                                <th style={thTdStyles}>Student Name</th>
-                                <th style={thTdStyles}>Class</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredClasses.length > 0 ? (
-                                filteredClasses.map((classInfo, index) => (
-                                    <tr
-                                        key={index}
-                                        style={
-                                            index % 2 === 0
-                                                ? { ...rowStyles, ...evenRowStyles }
-                                                : rowStyles
-                                        }
-                                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = hoverStyles.backgroundColor)}
-                                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = index % 2 === 0 ? evenRowStyles.backgroundColor : '')}
-                                    >
-                                        <td style={thTdStyles}>{classInfo.studentFullName }</td>
-                                        <td style={thTdStyles}>{classInfo.className }</td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr><td colSpan="2">No student data available</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+        {/* Class Selection Dropdown */}
+        <div style={{ marginBottom: "24px" }}>
+          <select
+            style={{
+              padding: "8px",
+              border: "1px solid #d1d5db",
+              borderRadius: "0.375rem",
+              width: "256px",
+              marginLeft: "20px",
+            }}
+            value={selectedClass}
+            onChange={(e) => setSelectedClass(e.target.value)}
+          >
+            <option value="">All Classes</option>
+            {classOptions.map((className) => (
+              <option key={className} value={className}>
+                {className}
+              </option>
+            ))}
+          </select>
         </div>
-    );
+
+        {/* Loading and Error States */}
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "32px" }}>Loading...</div>
+        ) : error ? (
+          <div style={{ color: "red", padding: "16px" }}>{error}</div>
+        ) : filteredStudents.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "32px" }}>No students found</div>
+        ) : (
+          /* Students Table */
+          <div style={{ overflowX: "auto", marginLeft: "30px" }}>
+            <table
+              style={{
+                minWidth: "fit-content",
+                backgroundColor: "#ffffff",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                borderRadius: "0.375rem",
+                borderCollapse: "collapse",
+                border: "none",
+              }}
+            >
+              <thead style={{ backgroundColor: "#f3f4f6" }}>
+                <tr>
+                  <th style={{ padding: "8px", textAlign: "left", fontWeight: "bold", width: "10px" }}> {/* Đặt chiều rộng cột là 40px */}
+                    Student Name
+                  </th>
+                  <th style={{ padding: "8px", textAlign: "left", fontWeight: "bold", width: "10px" }}> {/* Đặt chiều rộng cột là 40px */}
+                    Class
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.map((student, index) => (
+                  <tr
+                    key={index}
+                    style={{
+                      borderBottom: "1px solid #e5e7eb",
+                      backgroundColor: index % 2 === 0 ? "#ffffff" : "#f9fafb",
+                      transition: "background-color 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "#e5e7eb";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = index % 2 === 0 ? "#ffffff" : "#f9fafb";
+                    }}
+                  >
+                    <td style={{  }}>{student.studentFullName}</td> 
+                    <td style={{ }}>{student.className}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ViewClass;
