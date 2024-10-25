@@ -6,7 +6,7 @@ import {
   getAssignedTeachers,
   updateTeacher,
   deleteTeacherById,
-} from "../../../API /CRUDTeachersAPI";
+} from "../../../API /CRUDTeachersAPI"; // Fixed API import path
 import {
   Button,
   TextField,
@@ -78,28 +78,32 @@ const AdminTeachersPage = () => {
     setErrorDialog({ open: true, message });
   };
 
+  // Handle closing dialogs
+  const handleCloseDialog = () => {
+    setDialogOpen({ type: "", open: false });
+  };
+
   // Error dialog close handler
   const handleCloseErrorDialog = () => {
     setErrorDialog({ open: false, message: "" });
   };
 
-// Handle adding a new teacher
-const handleAddTeacher = async () => {
-  if (!newTeacher.name || !newTeacher.email || !newTeacher.subjectId) {
-    showErrorDialog("Please enter full information.");
-    return;
-  }
+  // Handle adding a new teacher
+  const handleAddTeacher = async () => {
+    if (!newTeacher.name || !newTeacher.email || !newTeacher.subjectId) {
+      showErrorDialog("Please enter full information.");
+      return;
+    }
 
-  try {
-    await addTeacher(newTeacher);
-    setNewTeacher({ name: "", email: "", subjectId: "" });
-    await fetchTeachers(); // Fetch updated list of teachers
-    await fetchAssignedTeachers(); 
-  } catch (error) {
-    console.error("Add Teacher Error:", error); // Log error details
-    showErrorDialog(error.message || "Failed to add teacher.");
-  }
-};
+    try {
+      await addTeacher(newTeacher);
+      setNewTeacher({ name: "", email: "", subjectId: "" });
+      await fetchTeachers(); // Fetch updated list of teachers
+      await fetchAssignedTeachers();
+    } catch (error) {
+      showErrorDialog(error.message || "Failed to add teacher.");
+    }
+  };
 
   const handleOpenDialog = (type, data) => {
     if (type === "assign") {
@@ -117,11 +121,6 @@ const handleAddTeacher = async () => {
     setDialogOpen({ type, open: true });
   };
 
-  // Handle closing dialogs
-  const handleCloseDialog = () => {
-    setDialogOpen({ type: "", open: false });
-  };
-
   // Handle assigning a teacher to a class
   const handleAssignTeacher = async () => {
     if (!assignment.className) {
@@ -131,34 +130,33 @@ const handleAddTeacher = async () => {
 
     try {
       await assignTeacherToClass(assignment);
-      fetchAssignedTeachers();
+      await fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
       showErrorDialog(error.message || "Failed to assign teacher to class.");
     }
   };
 
-// Handle updating a teacher
-const handleUpdateTeacher = async () => {
-  if (!editTeacher || !editTeacher.teacherId) {
-    showErrorDialog("Teacher ID is missing.");
-    return;
-  }
+  // Handle updating a teacher
+  const handleUpdateTeacher = async () => {
+    if (!editTeacher || !editTeacher.teacherId) {
+      showErrorDialog("Teacher ID is missing.");
+      return;
+    }
 
-  try {
-    await updateTeacher(editTeacher.teacherId, {
-      name: editTeacher.name,
-      email: editTeacher.email,
-      subjectId: editTeacher.subjectId,
-    });
-    
-    await fetchTeachers(); // Fetch updated list of teachers
-    handleCloseDialog();
-  } catch (error) {
-    console.error("Update Teacher Error:", error);
-    showErrorDialog(error.message || "Failed to update teacher.");
-  }
-};
+    try {
+      await updateTeacher(editTeacher.teacherId, {
+        name: editTeacher.name,
+        email: editTeacher.email,
+        subjectId: editTeacher.subjectId,
+      });
+
+      await fetchTeachers(); // Fetch updated list of teachers
+      handleCloseDialog();
+    } catch (error) {
+      showErrorDialog(error.message || "Failed to update teacher.");
+    }
+  };
 
   // Handle deleting a teacher
   const handleDeleteTeacher = async () => {
@@ -169,18 +167,16 @@ const handleUpdateTeacher = async () => {
 
     try {
       await deleteTeacherById(deletingTeacher.teacherId);
-
-      // Cập nhật lại danh sách giáo viên sau khi xóa
+      // Update the list of teachers after deletion
       setTeachers((prevTeachers) =>
         prevTeachers.filter(
           (teacher) => teacher.teacherId !== deletingTeacher.teacherId
         )
       );
 
-      fetchAssignedTeachers();
+      await fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
-      console.error("Delete Teacher Error:", error);
       showErrorDialog(error.message || "Failed to delete teacher.");
     }
   };
@@ -222,7 +218,18 @@ const handleUpdateTeacher = async () => {
             setNewTeacher({ ...newTeacher, subjectId: e.target.value })
           }
         />
-        <Button onClick={handleAddTeacher}>Add Teacher</Button>
+        <Button
+          variant="contained"
+          sx={{
+            bgcolor: "green",
+            color: "white",
+            marginTop: "5px",
+            marginLeft: "10px",
+          }} // Add marginTop for spacing
+          onClick={handleAddTeacher}
+        >
+          Add Teacher
+        </Button>
       </div>
 
       <div className="section teacher-list">
@@ -231,26 +238,60 @@ const handleUpdateTeacher = async () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>Teacher Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Subject</TableCell>
-                <TableCell>Actions</TableCell>
+                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  Teacher Name
+                </TableCell>
+                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  Email
+                </TableCell>
+                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  Subject
+                </TableCell>
+                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  Actions
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {teachers.map((teacher) => (
                 <TableRow key={teacher.teacherId}>
-                  <TableCell>{teacher.name}</TableCell>
-                  <TableCell>{teacher.email}</TableCell>
-                  <TableCell>{teacher.subjectName}</TableCell>
-                  <TableCell>
-                    <Button onClick={() => handleOpenDialog("edit", teacher)}>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    {teacher.name}
+                  </TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    {teacher.email}
+                  </TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    {teacher.subjectName}
+                  </TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        bgcolor: "yellow",
+                        color: "black",
+                        marginRight: "10px",
+                      }}
+                      onClick={() => handleOpenDialog("edit", teacher)}
+                    >
                       Edit
                     </Button>
-                    <Button onClick={() => handleOpenDialog("delete", teacher)}>
+                    <Button
+                      variant="contained"
+                      sx={{
+                        bgcolor: "red",
+                        color: "white",
+                        marginRight: "10px",
+                      }}
+                      onClick={() => handleOpenDialog("delete", teacher)}
+                    >
                       Delete
                     </Button>
-                    <Button onClick={() => handleOpenDialog("assign", teacher)}>
+                    <Button
+                      variant="contained"
+                      sx={{ bgcolor: "purple", color: "white" }}
+                      onClick={() => handleOpenDialog("assign", teacher)}
+                    >
                       Assign Class
                     </Button>
                   </TableCell>
@@ -271,36 +312,83 @@ const handleUpdateTeacher = async () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Teacher Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Class Name</TableCell>
-                  <TableCell>Subject</TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    Teacher Name
+                  </TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    Email
+                  </TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    Subject
+                  </TableCell>
+                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
-                {assignedTeachers.map((assigned) => (
-                  <TableRow key={assigned.id}>
-                    <TableCell>{assigned.teacherFullName}</TableCell>
-                    <TableCell>{assigned.teacherEmail}</TableCell>
-                    <TableCell>{assigned.className}</TableCell>
-                    <TableCell>{assigned.subjectName}</TableCell>
+                {assignedTeachers.map((teacher) => (
+                  <TableRow key={teacher.teacherId}>
+                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                      {teacher.teacherFullName}
+                    </TableCell>
+                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                      {teacher.teacherEmail}
+                    </TableCell>
+                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                      {teacher.subjectName}
+                    </TableCell>
+                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                      {teacher.className}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
         ) : (
-          <p>No teachers assigned to any class yet.</p>
+          showAssignedTeachers && <p>No assigned teachers found.</p>
         )}
       </div>
 
+      {/* Dialogs for Add/Edit/Delete */}
       <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
-        {isDialogOpen.type === "assign" && (
-          <>
-            <DialogTitle>
-              Assign Class to {assignment.teacherFullName}
-            </DialogTitle>
-            <DialogContent>
+        <DialogTitle>
+          {isDialogOpen.type === "edit"
+            ? "Edit Teacher"
+            : isDialogOpen.type === "delete"
+            ? "Delete Teacher"
+            : "Assign Teacher to Class"}
+        </DialogTitle>
+        <DialogContent>
+          {isDialogOpen.type === "edit" && (
+            <>
+              <TextField
+                label="Name"
+                value={editTeacher?.name || ""}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, name: e.target.value })
+                }
+              />
+              <TextField
+                label="Email"
+                value={editTeacher?.email || ""}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, email: e.target.value })
+                }
+              />
+              <TextField
+                label="Subject ID"
+                value={editTeacher?.subjectId || ""}
+                onChange={(e) =>
+                  setEditTeacher({ ...editTeacher, subjectId: e.target.value })
+                }
+              />
+            </>
+          )}
+          {isDialogOpen.type === "assign" && (
+            <>
               <TextField
                 label="Class Name"
                 value={assignment.className}
@@ -308,59 +396,24 @@ const handleUpdateTeacher = async () => {
                   setAssignment({ ...assignment, className: e.target.value })
                 }
               />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleAssignTeacher}>Assign</Button>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
-            </DialogActions>
-          </>
-        )}
-        {isDialogOpen.type === "edit" && (
-          <>
-            <DialogTitle>Edit Teacher</DialogTitle>
-            <DialogContent>
-              <TextField
-                label="Name"
-                value={editTeacher.name}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, name: e.target.value })
-                }
-              />
-              <TextField
-                label="Email"
-                value={editTeacher.email}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, email: e.target.value })
-                }
-              />
-              <TextField
-                label="Subject ID"
-                value={editTeacher.subjectId}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, subjectId: e.target.value })
-                }
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleUpdateTeacher}>Update</Button>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
-            </DialogActions>
-          </>
-        )}
-        {isDialogOpen.type === "delete" && (
-          <>
-            <DialogTitle>Delete Teacher</DialogTitle>
-            <DialogContent>
-              Are you sure you want to delete this teacher?
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleDeleteTeacher}>Delete</Button>
-              <Button onClick={handleCloseDialog}>Cancel</Button>
-            </DialogActions>
-          </>
-        )}
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+          {isDialogOpen.type === "edit" && (
+            <Button onClick={handleUpdateTeacher}>Save</Button>
+          )}
+          {isDialogOpen.type === "delete" && (
+            <Button onClick={handleDeleteTeacher}>Confirm Delete</Button>
+          )}
+          {isDialogOpen.type === "assign" && (
+            <Button onClick={handleAssignTeacher}>Assign</Button>
+          )}
+        </DialogActions>
       </Dialog>
 
+      {/* Error Dialog */}
       <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
         <DialogTitle>Error</DialogTitle>
         <DialogContent>{errorDialog.message}</DialogContent>
@@ -370,6 +423,10 @@ const handleUpdateTeacher = async () => {
       </Dialog>
     </div>
   );
+};
+
+const cellStyle = {
+  border: "1px solid #ccc",
 };
 
 export default AdminTeachersPage;
