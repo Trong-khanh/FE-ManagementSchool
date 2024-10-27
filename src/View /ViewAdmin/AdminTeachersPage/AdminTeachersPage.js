@@ -6,7 +6,7 @@ import {
   getAssignedTeachers,
   updateTeacher,
   deleteTeacherById,
-} from "../../../API /CRUDTeachersAPI"; // Fixed API import path
+} from "../../../API /CRUDTeachersAPI";
 import {
   Button,
   TextField,
@@ -14,10 +14,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@mui/material";
-import NavBar from "../../NavBar";
-import "../AdminTeachersPageCSS/AdminTeachersPage.css";
-import {
   Table,
   TableBody,
   TableCell,
@@ -26,6 +22,7 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import NavBar from "../../NavBar";
 
 const AdminTeachersPage = () => {
   const [teachers, setTeachers] = useState([]);
@@ -81,6 +78,7 @@ const AdminTeachersPage = () => {
   // Handle closing dialogs
   const handleCloseDialog = () => {
     setDialogOpen({ type: "", open: false });
+    setEditTeacher(null); // Reset editTeacher when dialog is closed
   };
 
   // Error dialog close handler
@@ -98,7 +96,7 @@ const AdminTeachersPage = () => {
     try {
       await addTeacher(newTeacher);
       setNewTeacher({ name: "", email: "", subjectId: "" });
-      await fetchTeachers(); // Fetch updated list of teachers
+      await fetchTeachers();
       await fetchAssignedTeachers();
     } catch (error) {
       showErrorDialog(error.message || "Failed to add teacher.");
@@ -114,6 +112,7 @@ const AdminTeachersPage = () => {
         className: "",
       });
     } else if (type === "edit") {
+      // Set editTeacher data to populate the dialog fields
       setEditTeacher(data);
     } else if (type === "delete") {
       setDeletingTeacher(data);
@@ -167,7 +166,6 @@ const AdminTeachersPage = () => {
 
     try {
       await deleteTeacherById(deletingTeacher.teacherId);
-      // Update the list of teachers after deletion
       setTeachers((prevTeachers) =>
         prevTeachers.filter(
           (teacher) => teacher.teacherId !== deletingTeacher.teacherId
@@ -181,9 +179,10 @@ const AdminTeachersPage = () => {
     }
   };
 
+  // Show assigned teachers
   const handleShowAssignedTeachers = async () => {
     await fetchAssignedTeachers();
-    setShowAssignedTeachers(true);
+    setShowAssignedTeachers((prev) => !prev);
   };
 
   return (
@@ -193,61 +192,94 @@ const AdminTeachersPage = () => {
         onSearchChange={(e) => setSearchQuery(e.target.value)}
       />
 
-      <h2>Teacher Management</h2>
+      <h1 style={{ textAlign: "center" }}>Teacher Management</h1>
+      <div
+        className="section"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          margin: "20px",
+          alignItems: "flex-start",
+        }}
+      >
+        <h3 style={{ margin: "20px" }}>Add New Teacher</h3>
 
-      <div className="section">
-        <h3>Add New Teacher</h3>
-        <TextField
-          label="Name"
-          value={newTeacher.name}
-          onChange={(e) =>
-            setNewTeacher({ ...newTeacher, name: e.target.value })
-          }
-        />
-        <TextField
-          label="Email"
-          value={newTeacher.email}
-          onChange={(e) =>
-            setNewTeacher({ ...newTeacher, email: e.target.value })
-          }
-        />
-        <TextField
-          label="Subject ID"
-          value={newTeacher.subjectId}
-          onChange={(e) =>
-            setNewTeacher({ ...newTeacher, subjectId: e.target.value })
-          }
-        />
-        <Button
-          variant="contained"
-          sx={{
-            bgcolor: "green",
-            color: "white",
-            marginTop: "5px",
-            marginLeft: "10px",
-          }} // Add marginTop for spacing
-          onClick={handleAddTeacher}
+        <div
+          className="form-input"
+          style={{
+            marginLeft: "20px",
+            width: "300px",
+            padding: "15px",
+            border: "1px solid #ddd",
+            borderRadius: "5px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
         >
-          Add Teacher
-        </Button>
+          <TextField
+            label="Name"
+            value={newTeacher.name}
+            onChange={(e) =>
+              setNewTeacher({ ...newTeacher, name: e.target.value })
+            }
+            style={{ marginBottom: "10px" }}
+            fullWidth
+          />
+          <TextField
+            label="Email"
+            value={newTeacher.email}
+            onChange={(e) =>
+              setNewTeacher({ ...newTeacher, email: e.target.value })
+            }
+            style={{ marginBottom: "10px" }}
+            fullWidth
+          />
+          <TextField
+            label="Subject ID"
+            value={newTeacher.subjectId}
+            onChange={(e) =>
+              setNewTeacher({ ...newTeacher, subjectId: e.target.value })
+            }
+            style={{ marginBottom: "10px" }}
+            fullWidth
+          />
+          <Button
+            variant="contained"
+            sx={{
+              bgcolor: "green",
+              color: "white",
+            }}
+            onClick={handleAddTeacher}
+          >
+            Add Teacher
+          </Button>
+        </div>
       </div>
 
-      <div className="section teacher-list">
+      {/* Table of Teachers */}
+      <div className="section" style={{ padding: "10px", margin: "20px" }}>
         <h3>Teachers</h3>
-        <TableContainer component={Paper}>
+        <TableContainer
+          style={{
+            width: "90%",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            padding: "15px",
+            border: "1px solid #ddd",
+            borderRadius: "5px",
+          }}
+        >
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                  Teacher Name
+                <TableCell style={{ width: "20%", border: "1px solid #ddd" }}>
+                  Name
                 </TableCell>
-                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                <TableCell style={{ width: "20%", border: "1px solid #ddd" }}>
                   Email
                 </TableCell>
-                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                <TableCell style={{ width: "20%", border: "1px solid #ddd" }}>
                   Subject
                 </TableCell>
-                <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                <TableCell style={{ width: "20%", border: "1px solid #ddd" }}>
                   Actions
                 </TableCell>
               </TableRow>
@@ -255,44 +287,38 @@ const AdminTeachersPage = () => {
             <TableBody>
               {teachers.map((teacher) => (
                 <TableRow key={teacher.teacherId}>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  <TableCell style={{ border: "1px solid #ddd" }}>
                     {teacher.name}
                   </TableCell>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  <TableCell style={{ border: "1px solid #ddd" }}>
                     {teacher.email}
                   </TableCell>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  <TableCell style={{ border: "1px solid #ddd" }}>
                     {teacher.subjectName}
                   </TableCell>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  <TableCell style={{ border: "1px solid #ddd" }}>
                     <Button
                       variant="contained"
-                      sx={{
-                        bgcolor: "yellow",
-                        color: "black",
-                        marginRight: "10px",
-                      }}
+                      color="primary"
+                      style={{ marginRight: "5px" }}
+                      onClick={() => handleOpenDialog("assign", teacher)}
+                    >
+                      Assign
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      style={{ marginRight: "5px" }}
                       onClick={() => handleOpenDialog("edit", teacher)}
                     >
                       Edit
                     </Button>
                     <Button
                       variant="contained"
-                      sx={{
-                        bgcolor: "red",
-                        color: "white",
-                        marginRight: "10px",
-                      }}
+                      color="error"
                       onClick={() => handleOpenDialog("delete", teacher)}
                     >
                       Delete
-                    </Button>
-                    <Button
-                      variant="contained"
-                      sx={{ bgcolor: "purple", color: "white" }}
-                      onClick={() => handleOpenDialog("assign", teacher)}
-                    >
-                      Assign Class
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -302,131 +328,153 @@ const AdminTeachersPage = () => {
         </TableContainer>
       </div>
 
-      <div className="section assigned-teacher-list">
-        <h3>Assigned Teachers</h3>
-        <Button onClick={handleShowAssignedTeachers}>
-          Show Assigned Teachers
-        </Button>
-        {showAssignedTeachers && assignedTeachers.length > 0 ? (
-          <TableContainer component={Paper}>
+      {/* Toggle assigned teachers */}
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: "orange",
+          marginLeft: "30px"
+        }}
+        onClick={handleShowAssignedTeachers}
+      >
+        {showAssignedTeachers ? "Hide Assigned Teachers" : "Show Assigned Teachers"}
+      </Button>
+
+      {/* Assigned teachers */}
+      {showAssignedTeachers && (
+        <div className="section" style={{  margin: "20px" }}>
+          <h3>Assigned Teachers</h3>
+          <TableContainer
+            style={{
+              width: "90%",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              padding: "15px",
+              border: "1px solid #ddd",
+              borderRadius: "5px",
+              marginLeft: '11px'
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
+                  <TableCell style={{ border: "1px solid #ddd" }}>
                     Teacher Name
                   </TableCell>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                    Email
+                  <TableCell style={{ border: "1px solid #ddd" }}>
+                    Class Name
                   </TableCell>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                    Subject
-                  </TableCell>
-                  <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                    Actions
+                  <TableCell style={{ border: "1px solid #ddd" }}>
+                    Subject Name
                   </TableCell>
                 </TableRow>
               </TableHead>
-
               <TableBody>
-                {assignedTeachers.map((teacher) => (
-                  <TableRow key={teacher.teacherId}>
-                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                      {teacher.teacherFullName}
+                {assignedTeachers.map((assignedTeacher, index) => (
+                  <TableRow key={index}>
+                    <TableCell style={{ border: "1px solid #ddd" }}>
+                      {assignedTeacher.teacherFullName}
                     </TableCell>
-                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                      {teacher.teacherEmail}
+                    <TableCell style={{ border: "1px solid #ddd" }}>
+                      {assignedTeacher.className}
                     </TableCell>
-                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                      {teacher.subjectName}
-                    </TableCell>
-                    <TableCell style={{ ...cellStyle, textAlign: "center" }}>
-                      {teacher.className}
+                    <TableCell style={{ border: "1px solid #ddd" }}>
+                      {assignedTeacher.subjectName}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
           </TableContainer>
-        ) : (
-          showAssignedTeachers && <p>No assigned teachers found.</p>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Dialogs for Add/Edit/Delete */}
-      <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
-        <DialogTitle>
-          {isDialogOpen.type === "edit"
-            ? "Edit Teacher"
-            : isDialogOpen.type === "delete"
-            ? "Delete Teacher"
-            : "Assign Teacher to Class"}
-        </DialogTitle>
-        <DialogContent>
-          {isDialogOpen.type === "edit" && (
-            <>
-              <TextField
-                label="Name"
-                value={editTeacher?.name || ""}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, name: e.target.value })
-                }
-              />
-              <TextField
-                label="Email"
-                value={editTeacher?.email || ""}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, email: e.target.value })
-                }
-              />
-              <TextField
-                label="Subject ID"
-                value={editTeacher?.subjectId || ""}
-                onChange={(e) =>
-                  setEditTeacher({ ...editTeacher, subjectId: e.target.value })
-                }
-              />
-            </>
-          )}
-          {isDialogOpen.type === "assign" && (
-            <>
-              <TextField
-                label="Class Name"
-                value={assignment.className}
-                onChange={(e) =>
-                  setAssignment({ ...assignment, className: e.target.value })
-                }
-              />
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          {isDialogOpen.type === "edit" && (
-            <Button onClick={handleUpdateTeacher}>Save</Button>
-          )}
-          {isDialogOpen.type === "delete" && (
-            <Button onClick={handleDeleteTeacher}>Confirm Delete</Button>
-          )}
-          {isDialogOpen.type === "assign" && (
+      {/* Dialog for adding and editing teachers */}
+      {isDialogOpen.type === "assign" && (
+        <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
+          <DialogTitle>Assign Teacher to Class</DialogTitle>
+          <DialogContent style={{padding: '5px'}}>
+            <TextField
+              label="Class Name"
+              value={assignment.className}
+              onChange={(e) =>
+                setAssignment({ ...assignment, className: e.target.value })
+              }
+              fullWidth
+              style={{ marginBottom: "10px" }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
             <Button onClick={handleAssignTeacher}>Assign</Button>
-          )}
-        </DialogActions>
-      </Dialog>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {isDialogOpen.type === "edit" && (
+        <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
+          <DialogTitle>Edit Teacher</DialogTitle>
+          <DialogContent style={{padding: '5px'}}>
+            <TextField
+              label="Name"
+              value={editTeacher.name}
+              onChange={(e) =>
+                setEditTeacher({ ...editTeacher, name: e.target.value })
+              }
+              fullWidth
+              style={{ marginBottom: "10px" }}
+            />
+            <TextField
+              label="Email"
+              value={editTeacher.email}
+              onChange={(e) =>
+                setEditTeacher({ ...editTeacher, email: e.target.value })
+              }
+              fullWidth
+              style={{ marginBottom: "10px" }}
+            />
+            <TextField
+              label="Subject ID"
+              value={editTeacher.subjectId}
+              onChange={(e) =>
+                setEditTeacher({ ...editTeacher, subjectId: e.target.value })
+              }
+              fullWidth
+              style={{ marginBottom: "10px" }}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleUpdateTeacher}>Update</Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {/* Dialog for confirming teacher deletion */}
+      {isDialogOpen.type === "delete" && (
+        <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogContent>
+            Are you sure you want to delete {deletingTeacher.name}?
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleDeleteTeacher}>Delete</Button>
+          </DialogActions>
+        </Dialog>
+      )}
 
       {/* Error Dialog */}
-      <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
-        <DialogTitle>Error</DialogTitle>
-        <DialogContent>{errorDialog.message}</DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseErrorDialog}>Close</Button>
-        </DialogActions>
-      </Dialog>
+      {errorDialog.open && (
+        <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
+          <DialogTitle>Error</DialogTitle>
+          <DialogContent>{errorDialog.message}</DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseErrorDialog}>Close</Button>
+          </DialogActions>
+        </Dialog>
+      )}
     </div>
   );
-};
-
-const cellStyle = {
-  border: "1px solid #ccc",
 };
 
 export default AdminTeachersPage;

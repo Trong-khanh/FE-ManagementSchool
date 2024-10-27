@@ -7,7 +7,7 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
-import NavBar from "../../NavBar";
+import NavBar from "../../NavBar.js";
 import {
   addStudent,
   GetAllStudent,
@@ -40,6 +40,7 @@ function AdminStudentPage() {
     try {
       const studentData = await GetAllStudent();
       setShowStudentList(studentData);
+      console.log("studentData", studentData);
     } catch (error) {
       console.log("error fetch student", error);
     }
@@ -86,8 +87,8 @@ function AdminStudentPage() {
       studentId: student.studentId,
       fullName: student.fullName,
       address: student.address,
-      className: student.class?.className || "No Class Assigned",
-      parentName: student.parent?.parentName || "No Parent Assigned",
+      className: student.className,
+      parentName: student.parentName,
       academicYear: student.academicYear,
     });
     setEditingIndex(index);
@@ -134,18 +135,24 @@ function AdminStudentPage() {
       <NavBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
       <h1 style={{ textAlign: "center" }}>Student Management</h1>
       <div className="content">
-        <div className="form-container" style={{
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          border: "1px solid #ddd",
-          padding: "15px",
-          borderRadius: "5px",
-          marginBottom: "20px",
-          maxWidth: "400px",
-          margin: "0 auto"
-        }}>
+        <div
+          className="form-container"
+          style={{
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #ddd",
+            padding: "15px",
+            borderRadius: "5px",
+            marginBottom: "20px",
+            maxWidth: "400px",
+            margin: "0 auto",
+          }}
+        >
           <h2>{editingIndex !== null ? "Edit Student" : "Add Student"}</h2>
           <form onSubmit={handleSubmit}>
-            <div className="form-group" style={{ marginBottom: "15px", marginRight: '15px' }}>
+            <div
+              className="form-group"
+              style={{ marginBottom: "15px", marginRight: "15px" }}
+            >
               <label htmlFor="fullName">Full Name:</label>
               <input
                 type="text"
@@ -154,10 +161,18 @@ function AdminStudentPage() {
                 value={formData.fullName}
                 onChange={handleChange}
                 required
-                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ddd",
+                }}
               />
             </div>
-            <div className="form-group" style={{ marginBottom: "15px", marginRight: '15px' }}>
+            <div
+              className="form-group"
+              style={{ marginBottom: "15px", marginRight: "15px" }}
+            >
               <label htmlFor="address">Address:</label>
               <input
                 type="text"
@@ -166,10 +181,18 @@ function AdminStudentPage() {
                 value={formData.address}
                 onChange={handleChange}
                 required
-                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ddd",
+                }}
               />
             </div>
-            <div className="form-group" style={{ marginBottom: "15px", marginRight: '15px' }}>
+            <div
+              className="form-group"
+              style={{ marginBottom: "15px", marginRight: "15px" }}
+            >
               <label htmlFor="className">Class Name:</label>
               <input
                 type="text"
@@ -178,10 +201,18 @@ function AdminStudentPage() {
                 value={formData.className}
                 onChange={handleChange}
                 required
-                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ddd",
+                }}
               />
             </div>
-            <div className="form-group" style={{ marginBottom: "15px", marginRight: '15px' }}>
+            <div
+              className="form-group"
+              style={{ marginBottom: "15px", marginRight: "15px" }}
+            >
               <label htmlFor="parentName">Parent Name:</label>
               <input
                 type="text"
@@ -190,10 +221,18 @@ function AdminStudentPage() {
                 value={formData.parentName}
                 onChange={handleChange}
                 required
-                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ddd",
+                }}
               />
             </div>
-            <div className="form-group" style={{ marginBottom: "15px", marginRight: '15px' }}>
+            <div
+              className="form-group"
+              style={{ marginBottom: "15px", marginRight: "15px" }}
+            >
               <label htmlFor="academicYear">Academic Year:</label>
               <input
                 type="text"
@@ -202,50 +241,93 @@ function AdminStudentPage() {
                 value={formData.academicYear}
                 onChange={handleChange}
                 required
-                style={{ width: "100%", padding: "8px", borderRadius: "4px", border: "1px solid #ddd" }}
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  borderRadius: "4px",
+                  border: "1px solid #ddd",
+                }}
               />
             </div>
-            <button type="submit" className="submit-btn" style={{
-              padding: "10px 15px",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              width: "100%",
-            }}>
+            <button
+              type="submit"
+              className="submit-btn"
+              style={{
+                padding: "10px 15px",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
               {editingIndex !== null ? "Update Student" : "Add Student"}
             </button>
           </form>
         </div>
-        <div className="list-container" style={{
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          border: "1px solid #ddd",
-          borderRadius: "5px",
-          padding: "15px",
-          margin: "0 auto",
-          maxWidth: "800px"
-        }}>
+        <div
+          className="list-container"
+          style={{
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            border: "1px solid #ddd",
+            borderRadius: "5px",
+            padding: "15px",
+            margin: "0 auto",
+            maxWidth: "800px",
+          }}
+        >
           <h2>Student List</h2>
           <table style={{ borderCollapse: "collapse", width: "100%" }}>
             <thead>
-              <tr style={{ backgroundColor: "#f2f2f2", borderBottom: "2px solid #ddd" }}>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Full Name</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Address</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Class Name</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Parent Name</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Academic Year</th>
-                <th style={{ padding: "10px", border: "1px solid #ddd" }}>Actions</th>
+              <tr
+                style={{
+                  backgroundColor: "#f2f2f2",
+                  borderBottom: "2px solid #ddd",
+                }}
+              >
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Full Name
+                </th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Address
+                </th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Class Name
+                </th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Parent Name
+                </th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Academic Year
+                </th>
+                <th style={{ padding: "10px", border: "1px solid #ddd" }}>
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredStudents.map((student, index) => (
-                <tr key={student.studentId} style={{ borderBottom: "1px solid #ddd" }}>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{student.fullName}</td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{student.address}</td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{student.class?.className || "No Class Assigned"}</td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{student.parent?.parentName || "No Parent Assigned"}</td>
-                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>{student.academicYear}</td>
+                <tr
+                  key={student.studentId}
+                  style={{ borderBottom: "1px solid #ddd" }}
+                >
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                    {student.fullName}
+                  </td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                    {student.address}
+                  </td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                    {student.className || "No Class Assigned"}
+                  </td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                    {student.parentName || "No Parent Assigned"}{" "}
+                    {/* Use parentName directly */}
+                  </td>
+                  <td style={{ padding: "10px", border: "1px solid #ddd" }}>
+                    {student.academicYear}
+                  </td>
                   <td style={{ padding: "10px", border: "1px solid #ddd" }}>
                     <button
                       onClick={() => handleEdit(index)}
@@ -287,7 +369,8 @@ function AdminStudentPage() {
         <DialogTitle>{"Confirm Delete"}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this student? This action cannot be undone.
+            Are you sure you want to delete this student? This action cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
