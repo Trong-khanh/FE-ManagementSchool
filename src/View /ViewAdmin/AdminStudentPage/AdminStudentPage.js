@@ -319,7 +319,7 @@ function AdminStudentPage() {
                     {student.address}
                   </td>
                   <td style={{ padding: "10px", border: "1px solid #ddd" }}>
-                    {student.className || "No Class Assigned"}
+                    {student.class?.className || "No Class Assigned"}
                   </td>
                   <td style={{ padding: "10px", border: "1px solid #ddd" }}>
                     {student.parentName || "No Parent Assigned"}{" "}
