@@ -90,7 +90,7 @@ const AssignedClassesStudents = async (teacherEmail) => {
       }
     );
     console.log("Assigned students data:", response.data);
-    return response.data; // Trả về danh sách sinh viên
+    return response.data;
   } catch (error) {
     console.error("Error fetching assigned students:", error);
     throw error;
@@ -104,16 +104,12 @@ const addScore = async (scoreData, teacherEmail) => {
       scoreData,
       "for teacher:",
       teacherEmail
-
-
-
-
-    ); // Kiểm tra dữ liệu gửi lên server
+    ); 
     const response = await userApi.post("/Teacher/AddScore", {
       ...scoreData,
       teacherEmail,
     });
-    console.log("Score added response:", response.data); // In ra phản hồi từ server
+    console.log("Score added response:", response.data); 
     return response.data;
   } catch (error) {
     console.error(
@@ -126,10 +122,33 @@ const addScore = async (scoreData, teacherEmail) => {
   }
 };
 
+// Function to get scores for a specific student
+const getScoresForStudent = async (studentId, subjectId = null, semesterId = null) => {
+    try {
+      const response = await userApi.get(`/Teacher/ GetScoreStudent/${studentId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+        params: {
+          subjectId,
+          semesterId,
+        },
+      });
+      console.log("Student scores data:", response.data);
+      return response.data; 
+    } catch (error) {
+      console.error("Error fetching student scores:", error.response ? error.response.data : error.message);
+      throw new Error(
+        error.response ? error.response.data : "Error fetching student scores"
+      );
+    }
+  };
+  
 
-// Exporting functions for use in other modules
-export {
-  ViewAllSemesters,
-  AssignedClassesStudents,
-  addScore
-};
+  export {
+    ViewAllSemesters,
+    AssignedClassesStudents,
+    addScore,
+    getScoresForStudent 
+  };
+  

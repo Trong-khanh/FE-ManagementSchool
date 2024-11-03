@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ViewAllSemesters, AssignedClassesStudents, addScore } from "../../API /TeacherAPI"; 
+import {
+  ViewAllSemesters,
+  AssignedClassesStudents,
+  addScore,
+  getScoresForStudent,
+} from "../../API /TeacherAPI"; // Ensure path is correct
 import Navbar2 from "../Navbar2";
 import {
   Dialog,
@@ -9,6 +14,11 @@ import {
   Button,
   TextField,
   MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
 } from "@mui/material";
 
 const ViewScore = () => {
@@ -19,15 +29,15 @@ const ViewScore = () => {
     { value: "FortyFiveMinutesTest", label: "45 Minutes Test" },
     { value: "SemesterTest", label: "Semester Test" },
   ]);
-
   const [assignedClasses, setAssignedClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedClass, setSelectedClass] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [openScoreDialog, setOpenScoreDialog] = useState(false);
   const [currentStudent, setCurrentStudent] = useState(null);
+  const [studentScores, setStudentScores] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
-
   const [scoreData, setScoreData] = useState({
     semesterId: "",
     scoreValue: "",
@@ -40,8 +50,7 @@ const ViewScore = () => {
         const semestersData = await ViewAllSemesters();
         setSemesters(semestersData);
 
-        // Fetch assigned classes
-        const classesData = await AssignedClassesStudents(); 
+        const classesData = await AssignedClassesStudents();
         setAssignedClasses(classesData);
       } catch (err) {
         setError(err.response?.data?.message || "Error fetching data");
@@ -56,26 +65,51 @@ const ViewScore = () => {
     try {
       const scoreEntry = {
         studentId: currentStudent.studentId,
-        subjectId: currentStudent.subjectId, 
+        subjectId: currentStudent.subjectId,
         semesterId: scoreData.semesterId,
-        scoreValue: parseFloat(scoreData.scoreValue), 
+        scoreValue: parseFloat(scoreData.scoreValue),
         examType: scoreData.examType,
       };
 
       await addScore(scoreEntry);
-      setSuccessMessage("Điểm đã được thêm thành công!");
+      setSuccessMessage("Add score success");
       resetScoreData();
       handleCloseDialog();
 
-      // Reload the assigned classes list after adding the score
       const classesData = await AssignedClassesStudents();
       setAssignedClasses(classesData);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || "Lỗi khi thêm điểm";
+      const errorMessage =
+        err.response?.data?.message || err.message || "Error when adding score";
       setError(errorMessage);
     }
   };
-  
+  const handleViewScores = async (student) => {
+    try {
+        const scores = await getScoresForStudent(student.studentId);
+        console.log(scores); 
+
+        // Create a map of semesterId to semesterType for easy lookup
+        const semesterMap = semesters.reduce((map, semester) => {
+            map[semester.semesterId] = semester.semesterType;
+            return map;
+        }, {});
+
+        const filteredScores = scores.map((score) => ({
+            semesterType: semesterMap[score.semesterId] || 'Unknown', 
+            scoreValue: score.scoreValue,
+            examType: score.examType,
+        }));
+
+        setStudentScores(filteredScores);
+        setCurrentStudent(student);
+        setOpenScoreDialog(true);
+    } catch (error) {
+        setError(error.message);
+    }
+};
+
+
   const resetScoreData = () => {
     setScoreData({
       semesterId: "",
@@ -96,11 +130,20 @@ const ViewScore = () => {
     resetScoreData();
   };
 
+  const handleCloseScoreDialog = () => {
+    setOpenScoreDialog(false);
+    setStudentScores([]);
+  };
+
   const filteredClasses = selectedClass
-    ? assignedClasses.filter((classInfo) => classInfo.className === selectedClass)
+    ? assignedClasses.filter(
+        (classInfo) => classInfo.className === selectedClass
+      )
     : assignedClasses;
 
-  const classOptions = [...new Set(assignedClasses.map((classInfo) => classInfo.className))];
+  const classOptions = [
+    ...new Set(assignedClasses.map((classInfo) => classInfo.className)),
+  ];
 
   const tableStyles = {
     width: "100%",
@@ -119,109 +162,165 @@ const ViewScore = () => {
   return (
     <div>
       <Navbar2 />
-      <h2>Danh sách học sinh đã phân công</h2>
-      {error && <div style={{ color: 'red' }}>{error}</div>}
-      {successMessage && <div style={{ color: 'green' }}>{successMessage}</div>}
+      <div style={{ padding: "20px" }}>
+        <h2
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            marginBottom: "24px",
+          }}
+        >
+          List Students
+        </h2>
+        {error && <div style={{ color: "red" }}>{error}</div>}
+        {successMessage && (
+          <div style={{ color: "green" }}>{successMessage}</div>
+        )}
 
-      {classOptions.length > 0 ? (
-        <div>
-          <label htmlFor="class-select">Chọn lớp: </label>
-          <select
-            id="class-select"
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-          >
-            <option value="">Tất cả các lớp</option>
-            {classOptions.map((className, index) => (
-              <option key={index} value={className}>
-                {className}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : (
-        <p>Không có lớp nào</p>
-      )}
-
-      {loading ? (
-        <p>Đang tải...</p>
-      ) : error ? (
-        <p>Lỗi khi tải dữ liệu: {error}</p>
-      ) : (
-        <div>
-          <h3>Điểm của học sinh</h3>
-          <table style={tableStyles}>
-            <thead>
-              <tr>
-                <th style={thTdStyles}>Tên học sinh</th>
-                <th style={thTdStyles}>Tên môn</th>
-                <th style={thTdStyles}>Loại học kỳ</th>
-                <th style={thTdStyles}>Loại bài kiểm tra</th>
-                <th style={thTdStyles}>Điểm</th>
-                <th style={thTdStyles}>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredClasses.map((classInfo, index) => (
-                <tr key={index}>
-                  <td style={thTdStyles}>{classInfo.studentFullName}</td>
-                  <td style={thTdStyles}>{classInfo.subjectName || "N/A"}</td>
-                  <td style={thTdStyles}>{classInfo.semesterName || "N/A"}</td>
-                  <td style={thTdStyles}>{classInfo.examType || "N/A"}</td>
-                  <td style={thTdStyles}>{classInfo.scoreValue || "Chưa có điểm"}</td>
-                  <td style={thTdStyles}>
-                    <button onClick={() => handleOpenDialog(classInfo)}>Thêm/Sửa điểm</button>
-                  </td>
-                </tr>
+        {classOptions.length > 0 ? (
+          <div>
+            <label htmlFor="class-select">Select Class: </label>
+            <select
+              id="class-select"
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+            >
+              <option value="">All Classes</option>
+              {classOptions.map((className, index) => (
+                <option key={index} value={className}>
+                  {className}
+                </option>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+            </select>
+          </div>
+        ) : (
+          <p>No classes available</p>
+        )}
 
-      {/* Dialog for Adding Scores */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Thêm/Sửa điểm</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Điểm"
-            type="number"
-            value={scoreData.scoreValue}
-            onChange={(e) => setScoreData({ ...scoreData, scoreValue: e.target.value })}
-            fullWidth
-          />
-          <TextField
-            label="Loại bài kiểm tra"
-            select
-            value={scoreData.examType}
-            onChange={(e) => setScoreData({ ...scoreData, examType: e.target.value })}
-            fullWidth
-          >
-            {examTypes.map((type) => (
-              <MenuItem key={type.value} value={type.value}>
-                {type.label}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Loại học kỳ"
-            select
-            value={scoreData.semesterId}
-            onChange={(e) => setScoreData({ ...scoreData, semesterId: e.target.value })}
-            fullWidth
-          >
-            {semesters.map((semester) => (
-              <MenuItem key={semester.semesterId} value={semester.semesterId}>
-                {semester.semesterType}
-              </MenuItem>
-            ))}
-          </TextField>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="secondary">Hủy</Button>
-          <Button onClick={handleAddScore} color="primary">Thêm/Sửa điểm</Button>
-        </DialogActions>
-      </Dialog>
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>Error loading data: {error}</p>
+        ) : (
+          <div>
+            <h3>Student's Score</h3>
+            <table style={tableStyles}>
+              <thead>
+                <tr>
+                  <th style={thTdStyles}>Student Full Name</th>
+                  <th style={thTdStyles}>Class Name</th>
+                  <th style={thTdStyles}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredClasses.map((classInfo, index) => (
+                  <tr key={index}>
+                    <td style={thTdStyles}>{classInfo.studentFullName}</td>
+                    <td style={thTdStyles}>{classInfo.className}</td>
+                    <td style={thTdStyles}>
+                      <button onClick={() => handleOpenDialog(classInfo)}>
+                        Add Score
+                      </button>
+                      <button onClick={() => handleViewScores(classInfo)}>
+                        View Scores
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Dialog for Adding Scores */}
+        <Dialog open={openDialog} onClose={handleCloseDialog}>
+          <DialogTitle>Add Score</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Score"
+              type="number"
+              value={scoreData.scoreValue}
+              onChange={(e) =>
+                setScoreData({ ...scoreData, scoreValue: e.target.value })
+              }
+              fullWidth
+            />
+            <TextField
+              label="Exam Type"
+              select
+              value={scoreData.examType}
+              onChange={(e) =>
+                setScoreData({ ...scoreData, examType: e.target.value })
+              }
+              fullWidth
+            >
+              {examTypes.map((type) => (
+                <MenuItem key={type.value} value={type.value}>
+                  {type.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Semester Type"
+              select
+              value={scoreData.semesterId}
+              onChange={(e) =>
+                setScoreData({ ...scoreData, semesterId: e.target.value })
+              }
+              fullWidth
+            >
+              {semesters.map((semester) => (
+                <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                  {semester.semesterType}
+                </MenuItem>
+              ))}
+            </TextField>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color="secondary">
+              Cancel
+            </Button>
+            <Button onClick={handleAddScore} color="primary">
+              Add/Edit Score
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for Viewing Scores */}
+<Dialog open={openScoreDialog} onClose={handleCloseScoreDialog}>
+    <DialogTitle>Student Scores</DialogTitle>
+    <DialogContent>
+        {studentScores.length > 0 ? (
+            <Table style={tableStyles}>
+                <TableHead>
+                    <TableRow>
+                        <TableCell style={thTdStyles}>Semester Type</TableCell> 
+                        <TableCell style={thTdStyles}>Score</TableCell>
+                        <TableCell style={thTdStyles}>Exam Type</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {studentScores.map((score, index) => (
+                        <TableRow key={index}>
+                            <TableCell style={thTdStyles}>{score.semesterType}</TableCell> 
+                            <TableCell style={thTdStyles}>{score.scoreValue}</TableCell>
+                            <TableCell style={thTdStyles}>{score.examType}</TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        ) : (
+            <p>No scores available for this student.</p>
+        )}
+    </DialogContent>
+    <DialogActions>
+        <Button onClick={handleCloseScoreDialog} color="primary">
+            Close
+        </Button>
+    </DialogActions>
+</Dialog>
+
+      </div>
     </div>
   );
 };
