@@ -4,6 +4,7 @@ import {
   AssignedClassesStudents,
   addScore,
   getScoresForStudent,
+  calculateSemesterAverage,
 } from "../../API /TeacherAPI"; // Ensure path is correct
 import Navbar2 from "../Navbar2";
 import {
@@ -35,6 +36,7 @@ const ViewScore = () => {
   const [selectedClass, setSelectedClass] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [openScoreDialog, setOpenScoreDialog] = useState(false);
+  const [openCalculateDialog, setOpenCalculateDialog] = useState(false);
   const [currentStudent, setCurrentStudent] = useState(null);
   const [studentScores, setStudentScores] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
@@ -43,6 +45,9 @@ const ViewScore = () => {
     scoreValue: "",
     examType: "",
   });
+  const [selectedSemester, setSelectedSemester] = useState("");
+  const [calculatedAverage, setCalculatedAverage] = useState(null);
+  const [missingScoresMessage, setMissingScoresMessage] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,17 +67,31 @@ const ViewScore = () => {
   }, []);
 
   const handleAddScore = async () => {
+    const { semesterId, scoreValue, examType } = scoreData;
+
+    if (!semesterId || !scoreValue || !examType) {
+      setError("All fields (Semester, Score, and Exam Type) are required.");
+      return;
+    }
+
+    const parsedScoreValue = parseFloat(scoreValue);
+    if (isNaN(parsedScoreValue) || parsedScoreValue < 0 || parsedScoreValue > 10) {
+      setError("Score must be a number between 0 and 10.");
+      return;
+    }
+
     try {
       const scoreEntry = {
         studentId: currentStudent.studentId,
         subjectId: currentStudent.subjectId,
-        semesterId: scoreData.semesterId,
-        scoreValue: parseFloat(scoreData.scoreValue),
-        examType: scoreData.examType,
+        semesterId,
+        scoreValue: parsedScoreValue,
+        examType,
       };
 
       await addScore(scoreEntry);
-      setSuccessMessage("Add score success");
+      setError(null);
+      setSuccessMessage("Score added successfully");
       resetScoreData();
       handleCloseDialog();
 
@@ -84,32 +103,81 @@ const ViewScore = () => {
       setError(errorMessage);
     }
   };
+
   const handleViewScores = async (student) => {
     try {
-        const scores = await getScoresForStudent(student.studentId);
-        console.log(scores); 
+      const scores = await getScoresForStudent(student.studentId);
+      const semesterMap = semesters.reduce((map, semester) => {
+        map[semester.semesterId] = semester.semesterType;
+        return map;
+      }, {});
 
-        // Create a map of semesterId to semesterType for easy lookup
-        const semesterMap = semesters.reduce((map, semester) => {
-            map[semester.semesterId] = semester.semesterType;
-            return map;
-        }, {});
+      const filteredScores = scores.map((score) => ({
+        semesterType: semesterMap[score.semesterId] || "Unknown",
+        scoreValue: score.scoreValue,
+        examType: score.examType,
+      }));
 
-        const filteredScores = scores.map((score) => ({
-            semesterType: semesterMap[score.semesterId] || 'Unknown', 
-            scoreValue: score.scoreValue,
-            examType: score.examType,
-        }));
-
-        setStudentScores(filteredScores);
-        setCurrentStudent(student);
-        setOpenScoreDialog(true);
+      setStudentScores(filteredScores);
+      setCurrentStudent(student);
+      setOpenScoreDialog(true);
     } catch (error) {
-        setError(error.message);
+      setError(error.message);
     }
-};
+  };
+  const handleCalculateAverage = async () => {
+    try {
+      // Lấy tất cả điểm của sinh viên cho học kỳ được chọn
+      const scores = await getScoresForStudent(currentStudent.studentId);
+      const scoresForSelectedSemester = scores.filter(
+        (score) => score.semesterId === selectedSemester
+      );
+  
+      // Kiểm tra từng loại bài kiểm tra
+      const hasTestWhenClassBegins = scoresForSelectedSemester.some(
+        (score) => score.examType === "TestWhenClassBegins"
+      );
+      const hasFifteenMinutesTest = scoresForSelectedSemester.some(
+        (score) => score.examType === "FifteenMinutesTest"
+      );
+      const hasFortyFiveMinutesTest = scoresForSelectedSemester.some(
+        (score) => score.examType === "FortyFiveMinutesTest"
+      );
+      const hasSemesterTest = scoresForSelectedSemester.some(
+        (score) => score.examType === "SemesterTest"
+      );
+  
+      // Tạo danh sách các loại bài kiểm tra bị thiếu
+      const missingExamTypes = [];
+      if (!hasTestWhenClassBegins) missingExamTypes.push("Test When Class Begins");
+      if (!hasFifteenMinutesTest) missingExamTypes.push("Fifteen Minutes Test");
+      if (!hasFortyFiveMinutesTest) missingExamTypes.push("Forty Five Minutes Test");
+      if (!hasSemesterTest) missingExamTypes.push("Semester Test");
+  
+      // Nếu thiếu bất kỳ loại nào, hiển thị thông báo lỗi
+      if (missingExamTypes.length > 0) {
+        const missingTypesMessage = `Missing exam type: ${missingExamTypes.join(", ")}. You need enough to calculate semester average.`;
+        setMissingScoresMessage(missingTypesMessage);
+        setCalculatedAverage(null);
+        return;
+      }
+  
+      // Tính toán điểm trung bình nếu đủ điều kiện
+      const average = await calculateSemesterAverage(
+        currentStudent.studentId,
+        selectedSemester
+      );
+      setCalculatedAverage(average);
+      setSuccessMessage("Tính điểm trung bình thành công");
+      setMissingScoresMessage("");
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+  
+  
 
-
+  
   const resetScoreData = () => {
     setScoreData({
       semesterId: "",
@@ -133,6 +201,18 @@ const ViewScore = () => {
   const handleCloseScoreDialog = () => {
     setOpenScoreDialog(false);
     setStudentScores([]);
+  };
+
+  const handleOpenCalculateDialog = (student) => {
+    setCurrentStudent(student);
+    setCalculatedAverage(null);
+    setMissingScoresMessage("");
+    setOpenCalculateDialog(true);
+  };
+
+  const handleCloseCalculateDialog = () => {
+    setOpenCalculateDialog(false);
+    setSelectedSemester("");
   };
 
   const filteredClasses = selectedClass
@@ -163,18 +243,15 @@ const ViewScore = () => {
     <div>
       <Navbar2 />
       <div style={{ padding: "20px" }}>
-        <h2
-          style={{
-            fontSize: "1.5rem",
-            fontWeight: "bold",
-            marginBottom: "24px",
-          }}
-        >
+        <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "24px" }}>
           List Students
         </h2>
         {error && <div style={{ color: "red" }}>{error}</div>}
         {successMessage && (
-          <div style={{ color: "green" }}>{successMessage}</div>
+          <div style={{ color: "green", marginBottom: "10px" }}>{successMessage}</div>
+        )}
+        {missingScoresMessage && (
+          <div style={{ color: "red" }}>{missingScoresMessage}</div>
         )}
 
         {classOptions.length > 0 ? (
@@ -199,8 +276,6 @@ const ViewScore = () => {
 
         {loading ? (
           <p>Loading...</p>
-        ) : error ? (
-          <p>Error loading data: {error}</p>
         ) : (
           <div>
             <h3>Student's Score</h3>
@@ -209,7 +284,7 @@ const ViewScore = () => {
                 <tr>
                   <th style={thTdStyles}>Student Full Name</th>
                   <th style={thTdStyles}>Class Name</th>
-                  <th style={thTdStyles}>Action</th>
+                  <th style={thTdStyles}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -223,6 +298,11 @@ const ViewScore = () => {
                       </button>
                       <button onClick={() => handleViewScores(classInfo)}>
                         View Scores
+                      </button>
+                      <button
+                        onClick={() => handleOpenCalculateDialog(classInfo)}
+                      >
+                        Calculate Average
                       </button>
                     </td>
                   </tr>
@@ -244,6 +324,11 @@ const ViewScore = () => {
                 setScoreData({ ...scoreData, scoreValue: e.target.value })
               }
               fullWidth
+              error={
+                scoreData.scoreValue !== "" &&
+                (scoreData.scoreValue < 0 || scoreData.scoreValue > 10)
+              }
+              helperText="Score must be between 0 and 10"
             />
             <TextField
               label="Exam Type"
@@ -287,39 +372,77 @@ const ViewScore = () => {
         </Dialog>
 
         {/* Dialog for Viewing Scores */}
-<Dialog open={openScoreDialog} onClose={handleCloseScoreDialog}>
-    <DialogTitle>Student Scores</DialogTitle>
-    <DialogContent>
-        {studentScores.length > 0 ? (
-            <Table style={tableStyles}>
+        <Dialog open={openScoreDialog} onClose={handleCloseScoreDialog}>
+          <DialogTitle>Student Scores</DialogTitle>
+          <DialogContent>
+            {studentScores.length > 0 ? (
+              <Table style={tableStyles}>
                 <TableHead>
-                    <TableRow>
-                        <TableCell style={thTdStyles}>Semester Type</TableCell> 
-                        <TableCell style={thTdStyles}>Score</TableCell>
-                        <TableCell style={thTdStyles}>Exam Type</TableCell>
-                    </TableRow>
+                  <TableRow>
+                    <TableCell style={thTdStyles}>Semester Type</TableCell>
+                    <TableCell style={thTdStyles}>Score</TableCell>
+                    <TableCell style={thTdStyles}>Exam Type</TableCell>
+                  </TableRow>
                 </TableHead>
                 <TableBody>
-                    {studentScores.map((score, index) => (
-                        <TableRow key={index}>
-                            <TableCell style={thTdStyles}>{score.semesterType}</TableCell> 
-                            <TableCell style={thTdStyles}>{score.scoreValue}</TableCell>
-                            <TableCell style={thTdStyles}>{score.examType}</TableCell>
-                        </TableRow>
-                    ))}
+                  {studentScores.map((score, index) => (
+                    <TableRow key={index}>
+                      <TableCell style={thTdStyles}>
+                        {score.semesterType}
+                      </TableCell>
+                      <TableCell style={thTdStyles}>
+                        {score.scoreValue}
+                      </TableCell>
+                      <TableCell style={thTdStyles}>{score.examType}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
-            </Table>
-        ) : (
-            <p>No scores available for this student.</p>
-        )}
-    </DialogContent>
-    <DialogActions>
-        <Button onClick={handleCloseScoreDialog} color="primary">
-            Close
-        </Button>
-    </DialogActions>
-</Dialog>
+              </Table>
+            ) : (
+              <p>No scores available for this student.</p>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseScoreDialog} color="primary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
 
+        {/* Dialog for Calculating Average */}
+        <Dialog open={openCalculateDialog} onClose={handleCloseCalculateDialog}>
+          <DialogTitle>Calculate Semester Average</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Select Semester"
+              select
+              fullWidth
+              value={selectedSemester}
+              onChange={(e) => setSelectedSemester(e.target.value)}
+            >
+              {semesters.map((semester) => (
+                <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                  {semester.semesterType}
+                </MenuItem>
+              ))}
+            </TextField>
+            {calculatedAverage !== null && (
+              <p>Calculated Average: {calculatedAverage}</p>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseCalculateDialog} color="secondary">
+              Close
+            </Button>
+            <Button
+              onClick={handleCalculateAverage}
+              color="primary"
+              disabled={!selectedSemester}
+            >
+              Calculate
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     </div>
   );

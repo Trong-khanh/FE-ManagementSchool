@@ -121,8 +121,8 @@ const addScore = async (scoreData, teacherEmail) => {
     );
   }
 };
-
 // Function to get scores for a specific student
+
 const getScoresForStudent = async (studentId, subjectId = null, semesterId = null) => {
     try {
       const response = await userApi.get(`/Teacher/ GetScoreStudent/${studentId}`, {
@@ -143,12 +143,34 @@ const getScoresForStudent = async (studentId, subjectId = null, semesterId = nul
       );
     }
   };
+
+  const calculateSemesterAverage = async (studentId, semesterId) => {
+    try {
+      const response = await userApi.get("/Teacher/CalculateSemesterAverage", {
+        params: {
+          studentId,
+          semesterId,
+        },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      return response.data.SemesterAverage;
+    } catch (error) {
+      console.error(
+        "Error calculating semester average:",
+        error.response ? error.response.data : error.message
+      );
+      throw error;
+    }
+  };
   
 
   export {
     ViewAllSemesters,
     AssignedClassesStudents,
     addScore,
-    getScoresForStudent 
+    getScoresForStudent,
+    calculateSemesterAverage
   };
   
