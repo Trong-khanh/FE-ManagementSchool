@@ -165,12 +165,27 @@ const getScoresForStudent = async (studentId, subjectId = null, semesterId = nul
     }
   };
   
+  const getSemesterAverageForStudent = async (studentId, semesterId) => {
+    try {
+      const response = await userApi.get(`/Teacher/GetSemesterAverage/${studentId}/semester/${semesterId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      });
+      console.log("Semester average score for student:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching semester average:", error.response ? error.response.data : error.message);
+      throw new Error(error.response ? error.response.data : "Error fetching semester average");
+    }
+  };
 
   export {
     ViewAllSemesters,
     AssignedClassesStudents,
     addScore,
     getScoresForStudent,
-    calculateSemesterAverage
+    calculateSemesterAverage,
+    getSemesterAverageForStudent
   };
   

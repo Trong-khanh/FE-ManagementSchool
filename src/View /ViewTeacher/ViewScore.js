@@ -5,7 +5,8 @@ import {
   addScore,
   getScoresForStudent,
   calculateSemesterAverage,
-} from "../../API /TeacherAPI"; // Ensure path is correct
+  getSemesterAverageForStudent,
+} from "../../API /TeacherAPI";
 import Navbar2 from "../Navbar2";
 import {
   Dialog,
@@ -37,8 +38,10 @@ const ViewScore = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [openScoreDialog, setOpenScoreDialog] = useState(false);
   const [openCalculateDialog, setOpenCalculateDialog] = useState(false);
+  const [openViewSemesterDialog, setOpenViewSemesterDialog] = useState(false);
   const [currentStudent, setCurrentStudent] = useState(null);
   const [studentScores, setStudentScores] = useState([]);
+  const [semesterAverageScore, setSemesterAverageScore] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
   const [scoreData, setScoreData] = useState({
     semesterId: "",
@@ -46,8 +49,13 @@ const ViewScore = () => {
     examType: "",
   });
   const [selectedSemester, setSelectedSemester] = useState("");
+  const [selectedSemesterForView, setSelectedSemesterForView] = useState("");
   const [calculatedAverage, setCalculatedAverage] = useState(null);
   const [missingScoresMessage, setMissingScoresMessage] = useState("");
+  const [notificationOpen, setNotificationOpen] = useState(false);
+const [notificationMessage, setNotificationMessage] = useState("");
+const [notificationType, setNotificationType] = useState(""); // "error" or "success"
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,17 +74,28 @@ const ViewScore = () => {
     fetchData();
   }, []);
 
+  const showNotification = (message, type) => {
+    setNotificationMessage(message);
+    setNotificationType(type);
+    setNotificationOpen(true);
+  };
+  
+
   const handleAddScore = async () => {
     const { semesterId, scoreValue, examType } = scoreData;
 
     if (!semesterId || !scoreValue || !examType) {
-      setError("All fields (Semester, Score, and Exam Type) are required.");
+      showNotification("All fields (Semester, Score, and Exam Type) are required.", "error");
       return;
     }
 
     const parsedScoreValue = parseFloat(scoreValue);
-    if (isNaN(parsedScoreValue) || parsedScoreValue < 0 || parsedScoreValue > 10) {
-      setError("Score must be a number between 0 and 10.");
+    if (
+      isNaN(parsedScoreValue) ||
+      parsedScoreValue < 0 ||
+      parsedScoreValue > 10
+    ) {
+      showNotification("Score must be a number between 0 and 10.", "error");
       return;
     }
 
@@ -88,96 +107,127 @@ const ViewScore = () => {
         scoreValue: parsedScoreValue,
         examType,
       };
-
-      await addScore(scoreEntry);
-      setError(null);
-      setSuccessMessage("Score added successfully");
-      resetScoreData();
-      handleCloseDialog();
-
-      const classesData = await AssignedClassesStudents();
-      setAssignedClasses(classesData);
-    } catch (err) {
-      const errorMessage =
-        err.response?.data?.message || err.message || "Error when adding score";
-      setError(errorMessage);
-    }
+        await addScore(scoreEntry);
+        showNotification("Score added successfully", "success");
+        resetScoreData();
+        handleCloseDialog();
+        const classesData = await AssignedClassesStudents();
+        setAssignedClasses(classesData);
+      } catch (err) {
+        const errorMessage = err.response?.data?.message || err.message || "Error when adding score";
+        showNotification(errorMessage, "error");
+      }
   };
 
   const handleViewScores = async (student) => {
     try {
+      // Gọi API để lấy danh sách điểm của học sinh
       const scores = await getScoresForStudent(student.studentId);
+  
+      // Tạo một ánh xạ để chuyển đổi semesterId thành semesterType
       const semesterMap = semesters.reduce((map, semester) => {
         map[semester.semesterId] = semester.semesterType;
         return map;
       }, {});
-
+  
+      // Lọc và định dạng dữ liệu điểm theo semesterType, scoreValue, và examType
       const filteredScores = scores.map((score) => ({
         semesterType: semesterMap[score.semesterId] || "Unknown",
         scoreValue: score.scoreValue,
         examType: score.examType,
       }));
-
+  
+      // Cập nhật state với danh sách điểm và mở dialog hiển thị điểm
       setStudentScores(filteredScores);
       setCurrentStudent(student);
       setOpenScoreDialog(true);
     } catch (error) {
-      setError(error.message);
+      // Sử dụng showNotification để hiển thị lỗi qua Dialog
+      showNotification(error.message || "An error occurred while fetching scores.", "error");
     }
   };
+  
+
   const handleCalculateAverage = async () => {
     try {
-      // Lấy tất cả điểm của sinh viên cho học kỳ được chọn
       const scores = await getScoresForStudent(currentStudent.studentId);
       const scoresForSelectedSemester = scores.filter(
         (score) => score.semesterId === selectedSemester
       );
-  
-      // Kiểm tra từng loại bài kiểm tra
-      const hasTestWhenClassBegins = scoresForSelectedSemester.some(
-        (score) => score.examType === "TestWhenClassBegins"
-      );
-      const hasFifteenMinutesTest = scoresForSelectedSemester.some(
-        (score) => score.examType === "FifteenMinutesTest"
-      );
-      const hasFortyFiveMinutesTest = scoresForSelectedSemester.some(
-        (score) => score.examType === "FortyFiveMinutesTest"
-      );
-      const hasSemesterTest = scoresForSelectedSemester.some(
-        (score) => score.examType === "SemesterTest"
-      );
-  
-      // Tạo danh sách các loại bài kiểm tra bị thiếu
+
       const missingExamTypes = [];
-      if (!hasTestWhenClassBegins) missingExamTypes.push("Test When Class Begins");
-      if (!hasFifteenMinutesTest) missingExamTypes.push("Fifteen Minutes Test");
-      if (!hasFortyFiveMinutesTest) missingExamTypes.push("Forty Five Minutes Test");
-      if (!hasSemesterTest) missingExamTypes.push("Semester Test");
-  
-      // Nếu thiếu bất kỳ loại nào, hiển thị thông báo lỗi
+      const requiredExamTypes = [
+        "TestWhenClassBegins",
+        "FifteenMinutesTest",
+        "FortyFiveMinutesTest",
+        "SemesterTest",
+      ];
+
+      requiredExamTypes.forEach((type) => {
+        if (
+          !scoresForSelectedSemester.some((score) => score.examType === type)
+        ) {
+          missingExamTypes.push(type);
+        }
+      });
+
       if (missingExamTypes.length > 0) {
-        const missingTypesMessage = `Missing exam type: ${missingExamTypes.join(", ")}. You need enough to calculate semester average.`;
-        setMissingScoresMessage(missingTypesMessage);
+        setMissingScoresMessage(
+          `Missing exam type(s): ${missingExamTypes.join(", ")}`
+        );
         setCalculatedAverage(null);
         return;
       }
-  
-      // Tính toán điểm trung bình nếu đủ điều kiện
+
       const average = await calculateSemesterAverage(
         currentStudent.studentId,
         selectedSemester
       );
       setCalculatedAverage(average);
-      setSuccessMessage("Tính điểm trung bình thành công");
+      showNotification("Semester average calculated successfully", "success");
       setMissingScoresMessage("");
     } catch (error) {
       setError(error.message);
     }
   };
+
+  const handleViewYearAverage = async () => {
+    if (!selectedSemesterForView || !currentStudent) {
+      showNotification("Please select a semester.", "error");
+      return;
+    }
+    try {
+      const average = await getSemesterAverageForStudent(
+        currentStudent.studentId,
+        selectedSemesterForView
+      );
+      
+      // Kiểm tra nếu không tìm thấy dữ liệu điểm trung bình
+      if (!average) {
+        showNotification("No average score found for the specified student, subject, and semester.", "error");
+        return;
+      }
   
+      setSemesterAverageScore(average);
+      showNotification("Semester average retrieved successfully", "success");
+    } catch (error) {
+      showNotification(error.message || "An error occurred while fetching the average.", "error");
+    }
+  };
   
 
-  
+  const handleOpenViewSemesterDialog = (student) => {
+    setCurrentStudent(student);
+    setSemesterAverageScore(null);
+    setOpenViewSemesterDialog(true);
+  };
+
+  const handleCloseViewSemesterDialog = () => {
+    setOpenViewSemesterDialog(false);
+    setSelectedSemesterForView("");
+    setSemesterAverageScore(null);
+  };
+
   const resetScoreData = () => {
     setScoreData({
       semesterId: "",
@@ -243,12 +293,20 @@ const ViewScore = () => {
     <div>
       <Navbar2 />
       <div style={{ padding: "20px" }}>
-        <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "24px" }}>
+        <h2
+          style={{
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+            marginBottom: "24px",
+          }}
+        >
           List Students
         </h2>
         {error && <div style={{ color: "red" }}>{error}</div>}
         {successMessage && (
-          <div style={{ color: "green", marginBottom: "10px" }}>{successMessage}</div>
+          <div style={{ color: "green", marginBottom: "10px" }}>
+            {successMessage}
+          </div>
         )}
         {missingScoresMessage && (
           <div style={{ color: "red" }}>{missingScoresMessage}</div>
@@ -303,6 +361,11 @@ const ViewScore = () => {
                         onClick={() => handleOpenCalculateDialog(classInfo)}
                       >
                         Calculate Average
+                      </button>
+                      <button
+                        onClick={() => handleOpenViewSemesterDialog(classInfo)}
+                      >
+                        View Semester Average
                       </button>
                     </td>
                   </tr>
@@ -443,6 +506,69 @@ const ViewScore = () => {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Dialog for Viewing Semester Average */}
+        <Dialog
+          open={openViewSemesterDialog}
+          onClose={handleCloseViewSemesterDialog}
+        >
+          <DialogTitle>View Semester Average</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Select Semester"
+              select
+              fullWidth
+              value={selectedSemesterForView}
+              onChange={(e) => setSelectedSemesterForView(e.target.value)}
+            >
+              {semesters.map((semester) => (
+                <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                  {semester.semesterType}
+                </MenuItem>
+              ))}
+            </TextField>
+            {semesterAverageScore && (
+              <div style={{ marginTop: "10px" }}>
+                <p>
+                  Semester Average 1:{" "}
+                  {semesterAverageScore.semesterAverage1 || "N/A"}
+                </p>
+                <p>
+                  Semester Average 2:{" "}
+                  {semesterAverageScore.semesterAverage2 || "N/A"}
+                </p>
+                {semesterAverageScore.annualAverage && (
+                  <p>Annual Average: {semesterAverageScore.annualAverage}</p>
+                )}
+              </div>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseViewSemesterDialog} color="secondary">
+              Close
+            </Button>
+            <Button
+              onClick={handleViewYearAverage}
+              color="primary"
+              disabled={!selectedSemesterForView}
+            >
+              View Average
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={notificationOpen} onClose={() => setNotificationOpen(false)}>
+  <DialogTitle>{notificationType === "error" ? "Error" : "Success"}</DialogTitle>
+  <DialogContent>
+    <p>{notificationMessage}</p>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setNotificationOpen(false)} color="primary">
+      OK
+    </Button>
+  </DialogActions>
+</Dialog>
+
       </div>
     </div>
   );
