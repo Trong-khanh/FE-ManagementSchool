@@ -75,29 +75,43 @@ export const getTeachers = async () => {
 
 export const getTeachersBySubject = async (subjectName) => {
   try {
-    const response = await adminApi.get(`/Admin/GetTeachersBySubject/${subjectName}`);
+    const response = await adminApi.get(
+      `/Admin/GetTeachersBySubject/${subjectName}`
+    );
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data || "Failed to fetch teachers by subject");
+    throw new Error(
+      error.response?.data || "Failed to fetch teachers by subject"
+    );
   }
 };
 
 export const assignTeacherToClass = async (assignmentDto) => {
   try {
-    const response = await adminApi.post("/Admin/AssignTeacherToClass", assignmentDto);
+    const response = await adminApi.post(
+      "/Admin/AssignTeacherToClass",
+      assignmentDto
+    );
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data || "Failed to assign teacher to class");
+    throw new Error(
+      error.response?.data || "Failed to assign teacher to class"
+    );
   }
 };
 
 export const updateTeacher = async (teacherId, updatedTeacher) => {
   try {
-    const response = await adminApi.put(`/Admin/UpdateTeacher/${teacherId}`, updatedTeacher);
+    const response = await adminApi.put(
+      `/Admin/UpdateTeacher/${teacherId}`,
+      updatedTeacher
+    );
     return response.data;
   } catch (error) {
     console.error("Error in updateTeacher:", error);
-    throw new Error(error.response?.data?.message || "Failed to update teacher");
+    throw new Error(
+      error.response?.data?.message || "Failed to update teacher"
+    );
   }
 };
 
@@ -107,8 +121,13 @@ export const deleteTeacherById = async (teacherId) => {
     console.log("Teacher deleted successfully:", response.data);
     return response.data;
   } catch (error) {
-    console.error("Error in deleteTeacherById:", error.response?.data || error.message);
-    throw new Error(error.response?.data?.message || "Failed to delete teacher");
+    console.error(
+      "Error in deleteTeacherById:",
+      error.response?.data || error.message
+    );
+    throw new Error(
+      error.response?.data?.message || "Failed to delete teacher"
+    );
   }
 };
 
@@ -117,6 +136,37 @@ export const getAssignedTeachers = async () => {
     const response = await adminApi.get("/Admin/GetTeacherClassAssigned");
     return response.data;
   } catch (error) {
-    throw new Error(error.response?.data || "Failed to fetch assigned teachers");
+    throw new Error(
+      error.response?.data || "Failed to fetch assigned teachers"
+    );
+  }
+};
+
+// Update Teacher's Class Assignment
+export const updateTeacherClassAssignment = async (assignmentDto) => {
+  try {
+    const response = await adminApi.put(
+      "/Admin/UpdateTeacherClassAssignment",
+      assignmentDto
+    );
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data || "Failed to update teacher's class assignment"
+    );
+  }
+};
+
+// Delete Teacher from Class
+export const deleteTeacherFromClass = async (assignmentDto) => {
+  try {
+    const response = await adminApi.delete("/Admin/DeleteTeacherFromClass", {
+      data: assignmentDto,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(
+      error.response?.data || "Failed to delete teacher from class"
+    );
   }
 };

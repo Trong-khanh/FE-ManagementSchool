@@ -6,6 +6,8 @@ import {
   getAssignedTeachers,
   updateTeacher,
   deleteTeacherById,
+  updateTeacherClassAssignment,
+  deleteTeacherFromClass,
 } from "../../../API /CRUDTeachersAPI";
 import {
   Button,
@@ -20,7 +22,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
 } from "@mui/material";
 import NavBar from "../../NavBar";
 
@@ -39,11 +40,33 @@ const AdminTeachersPage = () => {
     subjectName: "",
     className: "",
   });
+  const [updateTeacherAssignment, setUpdateTeacherAssignment] = useState({
+    teacherFullName: "",
+    teacherEmail: "",
+    currentClassName: "",
+    newClassName: "",
+  });
   const [isDialogOpen, setDialogOpen] = useState({ type: "", open: false });
   const [deletingTeacher, setDeletingTeacher] = useState(null);
-  const [errorDialog, setErrorDialog] = useState({ open: false, message: "" });
+  const [notificationDialog, setNotificationDialog] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
+  const showNotificationDialog = (message, type = "success") => {
+    setNotificationDialog({
+      open: true,
+      message: message,
+      type: type,
+    });
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [showAssignedTeachers, setShowAssignedTeachers] = useState(false);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState({
+    open: false,
+    teacher: null,
+    className: null,
+  });
 
   // Fetch teachers
   const fetchTeachers = useCallback(async () => {
@@ -51,7 +74,10 @@ const AdminTeachersPage = () => {
       const result = await getTeachers();
       setTeachers(result || []);
     } catch (error) {
-      showErrorDialog("Failed to fetch teachers. Please try again.");
+      showNotificationDialog(
+        "Failed to fetch teachers. Please try again.",
+        "error"
+      );
     }
   }, []);
 
@@ -61,19 +87,93 @@ const AdminTeachersPage = () => {
       const result = await getAssignedTeachers();
       setAssignedTeachers(result || []);
     } catch (error) {
-      showErrorDialog("Failed to fetch assigned teachers. Please try again.");
+      showNotificationDialog(
+        "Failed to fetch assigned teachers. Please try again."
+      );
     }
   }, []);
+
+  const handleDeleteTeacherAssignment = async (assignedTeacher) => {
+    // Open the confirmation dialog instead of using window.confirm
+    setDeleteConfirmDialog({
+      open: true,
+      teacher: assignedTeacher.teacherFullName,
+      className: assignedTeacher.className,
+      data: assignedTeacher, // Store full data for deletion
+    });
+  };
+
+  const confirmDeleteAssignment = async () => {
+    const assignedTeacher = deleteConfirmDialog.data;
+    if (!assignedTeacher) return;
+
+    try {
+      const assignmentDto = {
+        TeacherEmail: assignedTeacher.teacherEmail,
+        TeacherFullName: assignedTeacher.teacherFullName,
+        ClassName: assignedTeacher.className,
+        SubjectName: assignedTeacher.subjectName,
+      };
+
+      await deleteTeacherFromClass(assignmentDto);
+      const updatedAssignedTeachers = await getAssignedTeachers();
+      setAssignedTeachers(updatedAssignedTeachers);
+      showNotificationDialog(
+        `Teacher ${assignedTeacher.teacherFullName} has been removed from ${assignedTeacher.className}.`
+      );
+    } catch (error) {
+      console.error("Error deleting teacher:", error);
+      showNotificationDialog("Failed to remove teacher from class.", "error");
+    } finally {
+      setDeleteConfirmDialog({
+        open: false,
+        teacher: null,
+        className: null,
+        data: null,
+      });
+    }
+  };
+
+  const cancelDeleteAssignment = () => {
+    setDeleteConfirmDialog({
+      open: false,
+      teacher: null,
+      className: null,
+      data: null,
+    });
+  };
+
+  // Hàm mở form update lớp giáo viên
+  const handleUpdateTeacherAssignment = (assignedTeacher) => {
+    setUpdateTeacherAssignment({
+      teacherFullName: assignedTeacher.teacherFullName,
+      teacherEmail: assignedTeacher.teacherEmail,
+      currentClassName: assignedTeacher.className,
+      newClassName: "", // User will input this
+    });
+    setDialogOpen({ type: "updateAssignment", open: true });
+  };
+
+  // Hàm xử lý khi người dùng nhấn Save để update lớp
+  const submitUpdatedAssignment = async () => {
+    try {
+      await updateTeacherClassAssignment(updateTeacherAssignment);
+      showNotificationDialog(
+        "Teacher's class assignment updated successfully."
+      );
+      setDialogOpen({ type: "", open: false });
+      fetchAssignedTeachers(); // Reload the teacher assignments
+    } catch (error) {
+      showNotificationDialog(
+        `Failed to update teacher assignment: ${error.message}`
+      );
+    }
+  };
 
   // Fetch teachers when the component mounts
   useEffect(() => {
     fetchTeachers();
   }, [fetchTeachers]);
-
-  // Error dialog handler
-  const showErrorDialog = (message) => {
-    setErrorDialog({ open: true, message });
-  };
 
   // Handle closing dialogs
   const handleCloseDialog = () => {
@@ -81,15 +181,10 @@ const AdminTeachersPage = () => {
     setEditTeacher(null); // Reset editTeacher when dialog is closed
   };
 
-  // Error dialog close handler
-  const handleCloseErrorDialog = () => {
-    setErrorDialog({ open: false, message: "" });
-  };
-
   // Handle adding a new teacher
   const handleAddTeacher = async () => {
     if (!newTeacher.name || !newTeacher.email || !newTeacher.subjectId) {
-      showErrorDialog("Please enter full information.");
+      showNotificationDialog("Please enter full information.", "error");
       return;
     }
 
@@ -99,7 +194,10 @@ const AdminTeachersPage = () => {
       await fetchTeachers();
       await fetchAssignedTeachers();
     } catch (error) {
-      showErrorDialog(error.message || "Failed to add teacher.");
+      showNotificationDialog(
+        error.message || "Failed to add teacher.",
+        "error"
+      );
     }
   };
 
@@ -123,23 +221,24 @@ const AdminTeachersPage = () => {
   // Handle assigning a teacher to a class
   const handleAssignTeacher = async () => {
     if (!assignment.className) {
-      showErrorDialog("Please enter class name.");
+      showNotificationDialog("Please enter class name.");
       return;
     }
-
     try {
       await assignTeacherToClass(assignment);
       await fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
-      showErrorDialog(error.message || "Failed to assign teacher to class.");
+      showNotificationDialog(
+        error.message || "Failed to assign teacher to class."
+      );
     }
   };
 
   // Handle updating a teacher
   const handleUpdateTeacher = async () => {
     if (!editTeacher || !editTeacher.teacherId) {
-      showErrorDialog("Teacher ID is missing.");
+      showNotificationDialog("Teacher ID is missing.");
       return;
     }
 
@@ -153,14 +252,14 @@ const AdminTeachersPage = () => {
       await fetchTeachers(); // Fetch updated list of teachers
       handleCloseDialog();
     } catch (error) {
-      showErrorDialog(error.message || "Failed to update teacher.");
+      showNotificationDialog(error.message || "Failed to update teacher.");
     }
   };
 
   // Handle deleting a teacher
   const handleDeleteTeacher = async () => {
     if (!deletingTeacher || !deletingTeacher.teacherId) {
-      showErrorDialog("No teacher selected for deletion.");
+      showNotificationDialog("No teacher selected for deletion.");
       return;
     }
 
@@ -175,7 +274,7 @@ const AdminTeachersPage = () => {
       await fetchAssignedTeachers();
       handleCloseDialog();
     } catch (error) {
-      showErrorDialog(error.message || "Failed to delete teacher.");
+      showNotificationDialog(error.message || "Failed to delete teacher.");
     }
   };
 
@@ -333,66 +432,127 @@ const AdminTeachersPage = () => {
         variant="contained"
         sx={{
           backgroundColor: "orange",
-          marginLeft: "30px"
+          marginLeft: "30px",
         }}
         onClick={handleShowAssignedTeachers}
       >
-        {showAssignedTeachers ? "Hide Assigned Teachers" : "Show Assigned Teachers"}
+        {showAssignedTeachers
+          ? "Hide Assigned Teachers"
+          : "Show Assigned Teachers"}
       </Button>
 
-      {/* Assigned teachers */}
       {showAssignedTeachers && (
-        <div className="section" style={{  margin: "20px" }}>
-          <h3>Assigned Teachers</h3>
-          <TableContainer
-            style={{
-              width: "90%",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              padding: "15px",
-              border: "1px solid #ddd",
-              borderRadius: "5px",
-              marginLeft: '11px'
-            }}
-          >
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell style={{ border: "1px solid #ddd" }}>
-                    Teacher Name
-                  </TableCell>
-                  <TableCell style={{ border: "1px solid #ddd" }}>
-                    Class Name
-                  </TableCell>
-                  <TableCell style={{ border: "1px solid #ddd" }}>
-                    Subject Name
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {assignedTeachers.map((assignedTeacher, index) => (
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Teacher Name</TableCell>
+                <TableCell>Subject</TableCell>
+                <TableCell>Class Name</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {assignedTeachers
+                .filter((teacher) =>
+                  teacher.teacherFullName
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+                )
+                .map((assignedTeacher, index) => (
                   <TableRow key={index}>
-                    <TableCell style={{ border: "1px solid #ddd" }}>
-                      {assignedTeacher.teacherFullName}
-                    </TableCell>
-                    <TableCell style={{ border: "1px solid #ddd" }}>
-                      {assignedTeacher.className}
-                    </TableCell>
-                    <TableCell style={{ border: "1px solid #ddd" }}>
-                      {assignedTeacher.subjectName}
+                    <TableCell>{assignedTeacher.teacherFullName}</TableCell>
+                    <TableCell>{assignedTeacher.subjectName}</TableCell>
+                    <TableCell>{assignedTeacher.className}</TableCell>
+                    <TableCell>
+                      <Button
+                        onClick={() =>
+                          handleUpdateTeacherAssignment(assignedTeacher)
+                        }
+                        variant="contained"
+                        color="primary"
+                      >
+                        Update
+                      </Button>
+                      <Button
+                        onClick={() =>
+                          handleDeleteTeacherAssignment(assignedTeacher)
+                        } // Opens the delete dialog
+                        variant="contained"
+                        color="secondary"
+                        style={{ marginLeft: "10px" }}
+                      >
+                        Delete
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
+      <Dialog
+        open={isDialogOpen.type === "updateAssignment"}
+        onClose={() => setDialogOpen({ type: "", open: false })}
+      >
+        <DialogTitle>Update Teacher's Class Assignment</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Teacher Name"
+            value={updateTeacherAssignment.teacherFullName}
+            fullWidth
+            disabled
+            margin="dense"
+          />
+          <TextField
+            label="Teacher Email"
+            value={updateTeacherAssignment.teacherEmail}
+            fullWidth
+            disabled
+            margin="dense"
+          />
+          <TextField
+            label="Current Class Name"
+            value={updateTeacherAssignment.currentClassName}
+            fullWidth
+            disabled
+            margin="dense"
+          />
+          <TextField
+            label="New Class Name"
+            value={updateTeacherAssignment.newClassName}
+            onChange={(e) =>
+              setUpdateTeacherAssignment({
+                ...updateTeacherAssignment,
+                newClassName: e.target.value,
+              })
+            }
+            fullWidth
+            margin="dense"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setDialogOpen({ type: "", open: false })}
+            color="primary"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={submitUpdatedAssignment}
+            color="primary"
+            variant="contained"
+          >
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-      {/* Dialog for adding and editing teachers */}
+      {/* Dialog for assign and editing teachers */}
       {isDialogOpen.type === "assign" && (
         <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
           <DialogTitle>Assign Teacher to Class</DialogTitle>
-          <DialogContent style={{padding: '5px'}}>
+          <DialogContent style={{ padding: "5px" }}>
             <TextField
               label="Class Name"
               value={assignment.className}
@@ -413,7 +573,7 @@ const AdminTeachersPage = () => {
       {isDialogOpen.type === "edit" && (
         <Dialog open={isDialogOpen.open} onClose={handleCloseDialog}>
           <DialogTitle>Edit Teacher</DialogTitle>
-          <DialogContent style={{padding: '5px'}}>
+          <DialogContent style={{ padding: "5px" }}>
             <TextField
               label="Name"
               value={editTeacher.name}
@@ -463,16 +623,49 @@ const AdminTeachersPage = () => {
         </Dialog>
       )}
 
-      {/* Error Dialog */}
-      {errorDialog.open && (
-        <Dialog open={errorDialog.open} onClose={handleCloseErrorDialog}>
-          <DialogTitle>Error</DialogTitle>
-          <DialogContent>{errorDialog.message}</DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseErrorDialog}>Close</Button>
-          </DialogActions>
-        </Dialog>
-      )}
+      {/* Error and Success Dialog */}
+      <Dialog
+        open={notificationDialog.open}
+        onClose={() => setNotificationDialog({ open: false })}
+      >
+        <DialogTitle>
+          {notificationDialog.type === "success" ? "Success" : "Error"}
+        </DialogTitle>
+        <DialogContent>
+          <p>{notificationDialog.message}</p>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setNotificationDialog({ open: false })}
+            color="primary"
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmDialog.open} onClose={cancelDeleteAssignment}>
+        <DialogTitle>Confirm Removal</DialogTitle>
+        <DialogContent>
+          <p>
+            Are you sure you want to remove {deleteConfirmDialog.teacher} from{" "}
+            {deleteConfirmDialog.className}?
+          </p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDeleteAssignment} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmDeleteAssignment}
+            color="error"
+            variant="contained"
+          >
+            Remove
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
