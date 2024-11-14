@@ -13,6 +13,7 @@ import ViewSemester from "./View /ViewTeacher/ViewSemester";
 import ViewClass from "./View /ViewTeacher/ViewClass";
 import ViewScore from "./View /ViewTeacher/ViewScore";
 import AdminClass from "./View /ViewAdmin/AdminClass/AdminClass";
+import AdminScore from "./View /ViewAdmin/AdminScore/AdminScore";
 
 function App() {
   return (
@@ -27,11 +28,11 @@ function App() {
         <Route path="/admin/student" element={<AdminStudentPage />} />
         <Route path="/admin/semester" element={<AdminSemesterPage />} />
         <Route path="/admin/class" element={<AdminClass />} />
+        <Route path="/admin/score" element={<AdminScore />} />
         <Route path="/teacher" element={<Viewteacher />} />
         <Route path="/teacher/semester" element={<ViewSemester />} />
         <Route path="/teacher/class" element={<ViewClass />} />
         <Route path="/teacher/score" element={<ViewScore />} />
-
       </Routes>
     </BrowserRouter>
   );

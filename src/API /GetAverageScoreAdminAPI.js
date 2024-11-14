@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const baseLink = 'https://localhost:7201/api';
 
+// Tạo authApi để gọi các API liên quan đến xác thực
 const authApi = axios.create({
     baseURL: baseLink,
     headers: {
@@ -9,6 +10,7 @@ const authApi = axios.create({
     }
 });
 
+// Tạo userApi để gọi các API có yêu cầu xác thực
 const userApi = axios.create({
     baseURL: baseLink,
     headers: {
@@ -18,6 +20,19 @@ const userApi = axios.create({
 
 let refreshingTokenPromise = null;
 
+// Interceptor để thêm Authorization token vào tất cả các request
+userApi.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
+// Interceptor để xử lý refresh token khi token hết hạn
 userApi.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -43,28 +58,3 @@ userApi.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
-// Gọi API để tính điểm trung bình
-export const calculateAverageScores = async (className, academicYear) => {
-    try {
-        const response = await userApi.post('/Admin/calculate-class-average', null, {
-            params: { className, academicYear }
-        });
-        return response.data;
-    } catch (error) {
-        throw error.response ? error.response.data : error.message;
-    }
-};
-
-// Hàm gọi API để lấy điểm trung bình của học sinh trong một lớp
-export const getStudentAverageScores = async (classId, academicYear) => {
-    try {
-        const response = await userApi.get('/Admin/getAverage-scores', {
-            params: { classId, academicYear }
-        });
-        return response.data;
-    } catch (error) {
-        throw error.response ? error.response.data : error.message;
-    }
-};
-
