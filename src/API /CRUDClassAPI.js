@@ -78,16 +78,6 @@ export const getAllClasses = async () => {
     }
 };
 
-// Read One Class
-export const getClassById = async (id) => {
-    try {
-        const response = await userApi.get(`Admin/GetClass/${id}`);
-        return response.data; // Return the class details
-    } catch (error) {
-        throw error.response.data; // Handle error appropriately
-    }
-};
-
 // Update Class
 export const updateClass = async (id, updatedClass) => {
     try {

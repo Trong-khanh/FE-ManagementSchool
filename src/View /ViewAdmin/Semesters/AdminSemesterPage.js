@@ -114,10 +114,8 @@ const AdminSemesterPage = () => {
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       border: "1px solid #ddd",
       borderRadius: "5px",
-      padding: "15px",
       marginBottom: "20px",
       width: "400px",
-      margin: "0 auto", 
     },
     listContainer: {
       boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -126,12 +124,11 @@ const AdminSemesterPage = () => {
       padding: "15px",
       margin: "20px",
       maxWidth: "800px",
-      margin: "0 auto",
     },
     table: {
       borderCollapse: "collapse",
       width: "100%",
-      textAlign: "center", // Center-align table content
+      textAlign: "center",
     },
     thTd: {
       padding: "10px",
@@ -144,19 +141,19 @@ const AdminSemesterPage = () => {
       border: "none",
       borderRadius: "4px",
       cursor: "pointer",
-      width: "100%", // Full width button
-      marginTop: "10px", // Add margin to space out from inputs
+      width: "100%",
+      marginTop: "10px",
     },
     inputContainer: {
       marginBottom: "15px",
       display: "flex",
       flexDirection: "column",
-      alignItems: "center", // Center the input fields
+      alignItems: "center",
     },
     input: {
       padding: "10px",
-      width: "100%", // Full width input fields
-      maxWidth: "200px", // Limit maximum width for inputs
+      width: "100%",
+      maxWidth: "200px",
     },
     actionBtn: {
       marginRight: "5px",
@@ -253,7 +250,7 @@ const AdminSemesterPage = () => {
                       onClick={() => handleEdit(semester)}
                       style={{
                         ...styles.actionBtn,
-                        backgroundColor: "#FFA500", // Orange color
+                        backgroundColor: "#FFA500",
                       }}
                     >
                       Edit
