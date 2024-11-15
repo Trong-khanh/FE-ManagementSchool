@@ -137,6 +137,12 @@ function NavBar({ searchQuery, onSearchChange }) {
           >
             <MenuItem onClick={handleClose}>Score</MenuItem>
           </Link>
+          <Link
+              to="/admin/nextclass"
+              style={{ textDecoration: "none", color: "inherit" }}
+          >
+            <MenuItem onClick={handleClose}>Next Class</MenuItem>
+          </Link>
 
           <MenuItem onClick={handleLogout}>Logout</MenuItem>
         </Menu>
