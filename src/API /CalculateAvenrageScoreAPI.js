@@ -52,19 +52,24 @@ export const calculateAverageScores = async (className, academicYear) => {
         });
         return response.data;
     } catch (error) {
-        throw error.response ? error.response.data : error.message;
+        console.error("Lỗi khi tính điểm trung bình:", error);
+        return null;
     }
 };
 
 // Hàm gọi API để lấy điểm trung bình của học sinh trong một lớp
+
 export const getStudentAverageScores = async (classId, academicYear) => {
     try {
-        const response = await userApi.get('/Admin/getAverage-scores', {
-            params: { classId, academicYear }
+        const response = await userApi.get('/Admin/getAverage-scores', { // Đổi thành userApi
+            params: { classId, academicYear },
         });
         return response.data;
     } catch (error) {
-        throw error.response ? error.response.data : error.message;
+        console.error("Lỗi khi lấy điểm trung bình:", error);
+        return null;
     }
 };
+
+
 

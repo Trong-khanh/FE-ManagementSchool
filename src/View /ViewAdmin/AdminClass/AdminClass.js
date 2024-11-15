@@ -116,40 +116,43 @@ const AdminClass = () => {
         }}
       >
         <h3 style={{ textAlign: "center" }}>Add New Class</h3>
-        <input
-          type="text"
-          value={newClass.className}
-          onChange={(e) => setNewClass({ ...newClass, className: e.target.value })}
-          placeholder="Class Name"
-          style={{
-            width: "100%",
-            padding: "8px",
-            marginBottom: "10px",
-            borderRadius: "4px",
-            border: "1px solid #ddd",
-          }}
-        />
-        <button
-          onClick={handleAddClass}
-          disabled={loading}
-          style={{
-            width: "100%",
-            padding: "8px",
-            backgroundColor: "#4CAF50",
-            color: "white",
-            borderRadius: "4px",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Add Class
-        </button>
+          <input
+              type="text"
+              value={newClass.className}
+              onChange={(e) => setNewClass({...newClass, className: e.target.value})}
+              placeholder="Class Name"
+              style={{
+                  width: "calc(100% - 35px)",
+                  padding: "8px",
+                  marginBottom: "10px",
+                  borderRadius: "4px",
+                  border: "1px solid #ddd",
+                  marginLeft: "8px",
+                  marginRight: "8px",
+              }}
+          />
+
+          <button
+              onClick={handleAddClass}
+              disabled={loading}
+              style={{
+                  width: "100%",
+                  padding: "8px",
+                  backgroundColor: "#4CAF50",
+                  color: "white",
+                  borderRadius: "4px",
+                  border: "none",
+                  cursor: "pointer",
+              }}
+          >
+              Add Class
+          </button>
       </div>
 
-      {/* Edit Class Form */}
-      {editClass && (
-        <div
-          style={{
+        {/* Edit Class Form */}
+        {editClass && (
+            <div
+                style={{
             marginBottom: "20px",
             width: "300px",
             margin: "0 auto",
