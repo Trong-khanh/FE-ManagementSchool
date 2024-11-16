@@ -46,13 +46,13 @@ const SignInSide = () => {
   
         // Điều hướng dựa trên vai trò
         if (userRole === "Admin") {
-          navigate("/admin");
+          navigate("/admin/student");
         } else if (userRole === "Teacher") {
-          navigate("/teacher");
+          navigate("/teacher/class");
         } else if (userRole === "Student") {
-          navigate("/student/home");
+          navigate("/student");
         } else if (userRole === "Parent") {
-          navigate("/parent/home");
+          navigate("/parent/viewsocreandpayment");
         } else {
           setErrorMessage("User role is not recognized.");
         }

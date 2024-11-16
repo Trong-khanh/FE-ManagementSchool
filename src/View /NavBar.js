@@ -75,7 +75,7 @@ function NavBar({ searchQuery, onSearchChange }) {
     >
       <Toolbar>
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-          Student Management
+          School Management
         </Typography>
         <Search>
           <StyledInputBase

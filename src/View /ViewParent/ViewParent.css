@@ -1,0 +1,113 @@
+/* Ensure there's space between the form and the navbar */
+.form-container {
+    max-width: 800px;
+    margin: 30px auto; /* Adds space between the navbar and the form */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f9f9f9;
+}
+
+/* Title */
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Form Layout - Adjust to 4 columns (one for each input field) */
+.form {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 equal columns */
+    gap: 15px; /* Adds space between input fields */
+}
+
+/* Input Group */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adds space between label and input field */
+}
+
+.input-group label {
+    font-weight: bold;
+}
+
+/* Adjust input field width and margin */
+.input-field {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: calc(100% - 40px); /* Decrease width by 40px */
+    margin-bottom: 20px; /* Adds space between each input field */
+    margin-right: 15px; /* Adds 15px space between the inputs */
+}
+
+/* Submit Button */
+.submit-btn {
+    grid-column: span 4; /* Span across all columns */
+    padding: 12px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* Error Message */
+.error-message {
+    color: red;
+    margin-top: 10px;
+    text-align: center;
+}
+
+/* Score Table */
+.score-table {
+    max-width: 800px;
+    margin: 30px auto; /* Adds space between the form and the table */
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+/* Table Title */
+.table-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+/* Table Styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.table-header {
+    background-color: #f4f4f4;
+    padding: 10px;
+    text-align: left;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+
+table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.overflow-x-auto {
+    overflow-x: auto;
+}

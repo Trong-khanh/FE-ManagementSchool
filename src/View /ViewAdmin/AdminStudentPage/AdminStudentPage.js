@@ -13,7 +13,7 @@ import {
     GetAllStudent,
     UpdateStudent,
     DeleteStudent
-} from "../../../AdminAPI";
+} from "../../../API /CRUDStudentAPI";
 import {getAllClasses} from "../../../API /CRUDClassAPI";
 import {getAllSemesters} from "../../../API /CRUDSemesterAPI";
 import "./AdminStudentPage.css";
