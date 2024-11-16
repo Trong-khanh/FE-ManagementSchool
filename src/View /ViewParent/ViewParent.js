@@ -19,7 +19,6 @@ const semesterTypeMap = {
 
 const ViewParent = () => {
     const [studentName, setStudentName] = useState("");
-    const [className, setClassName] = useState("");
     const [academicYear, setAcademicYear] = useState("");
     const [scores, setScores] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -28,7 +27,7 @@ const ViewParent = () => {
     const [selectedSemester, setSelectedSemester] = useState(0);
 
     const handleGetScores = async () => {
-        if (!studentName || !className || !academicYear) {
+        if (!studentName || !academicYear) {
             setError("Please complete all the fields ");
             return;
         }
@@ -37,7 +36,7 @@ const ViewParent = () => {
         setError("");
 
         try {
-            const data = await getDailyScores(studentName, className, academicYear);
+            const data = await getDailyScores(studentName, academicYear);
             console.log("Received data: ", data);
 
             if (!data || data.length === 0) {
@@ -88,17 +87,6 @@ const ViewParent = () => {
                     </div>
 
                     <div className="input-group">
-                        <label htmlFor="className">Class Name:</label>
-                        <input
-                            type="text"
-                            id="className"
-                            value={className}
-                            onChange={(e) => setClassName(e.target.value)}
-                            className="input-field"
-                        />
-                    </div>
-
-                    <div className="input-group">
                         <label htmlFor="academicYear">Academic Year:</label>
                         <input
                             type="text"
@@ -137,7 +125,7 @@ const ViewParent = () => {
             {/* Show score table */}
             {filteredScores.length > 0 && (
                 <div className="score-table">
-                    <h2 className="table-title">List Student SCore</h2>
+                    <h2 className="table-title">List Student Score</h2>
                     <div className="overflow-x-auto">
                         <table className="table">
                             <thead>

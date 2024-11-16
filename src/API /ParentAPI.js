@@ -64,13 +64,12 @@ userApi.interceptors.response.use(
 );
 
 // Hàm gọi API lấy điểm hàng ngày của học sinh
-export const getDailyScores = async (studentName, className, academicYear) => {
+export const getDailyScores = async (studentName, academicYear) => {
     try {
-        // Gửi yêu cầu GET tới API
-        const response = await userApi.get('/Parent/GetsSoresDaily', {
+        // Gửi yêu cầu GET tới API (Không còn cần gửi 'className')
+        const response = await userApi.get('/Parent/GetDailyScores', {
             params: {
                 studentName: studentName,
-                className: className,
                 academicYear: academicYear,
             },
         });
@@ -84,3 +83,4 @@ export const getDailyScores = async (studentName, className, academicYear) => {
         throw error;
     }
 };
+
