@@ -25,10 +25,11 @@ const ViewParent = () => {
     const [error, setError] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedSemester, setSelectedSemester] = useState(0);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const handleGetScores = async () => {
         if (!studentName || !academicYear) {
-            setError("Please complete all the fields ");
+            setError("Please complete all the fields");
             return;
         }
 
@@ -44,6 +45,7 @@ const ViewParent = () => {
                 setScores([]);
             } else {
                 setScores(data);
+                setIsModalOpen(true); // Show the modal when scores are fetched
             }
         } catch (err) {
             setError(err.message || "An error occurred while retrieving the data");
@@ -62,19 +64,20 @@ const ViewParent = () => {
 
     // Filter scores based on search query and selected semester
     const filteredScores = scores
-        .filter(score =>
-            score.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-            score.semesterType === selectedSemester
+        .filter(
+            (score) =>
+                score.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) &&
+                score.semesterType === selectedSemester
         );
 
     return (
         <div>
-            <NavBarParent searchQuery={searchQuery} onSearchChange={handleSearchChange} />
+            <NavBarParent searchQuery={searchQuery} onSearchChange={handleSearchChange}/>
+
             {/* Form input */}
-            <div className="form-container">
-                <h1 className="title">List Student Score</h1>
 
                 <div className="form">
+                    <h1 className="title">List Student Score</h1> {/* Title above the input */}
                     <div className="input-group">
                         <label htmlFor="studentName">Student Full Name:</label>
                         <input
@@ -97,19 +100,6 @@ const ViewParent = () => {
                         />
                     </div>
 
-                    <div className="input-group">
-                        <label htmlFor="semester">Select Semester:</label>
-                        <select
-                            id="semester"
-                            value={selectedSemester}
-                            onChange={handleSemesterChange}
-                            className="input-field"
-                        >
-                            <option value={0}>Semester 1</option>
-                            <option value={1}>Semester 2</option>
-                        </select>
-                    </div>
-
                     <button
                         onClick={handleGetScores}
                         disabled={loading}
@@ -120,33 +110,65 @@ const ViewParent = () => {
 
                     {error && <p className="error-message">{error}</p>}
                 </div>
-            </div>
 
-            {/* Show score table */}
-            {filteredScores.length > 0 && (
-                <div className="score-table">
-                    <h2 className="table-title">List Student Score</h2>
-                    <div className="overflow-x-auto">
-                        <table className="table">
-                            <thead>
-                            <tr>
-                                <th className="table-header">Subject</th>
-                                <th className="table-header">Semester</th>
-                                <th className="table-header">Exam Type</th>
-                                <th className="table-header">Score</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {filteredScores.map((score, index) => (
-                                <tr key={index}>
-                                    <td>{score.subjectName}</td>
-                                    <td>{semesterTypeMap[score.semesterType]}</td>
-                                    <td>{examTypeMap[score.examType]}</td>
-                                    <td>{score.scoreValue}</td>
+
+            {/* Modal for displaying filtered scores */}
+            {isModalOpen && (
+                <div className="modal" style={{display: 'block'}}>
+                    <div className="modal-content">
+                        <span
+                            className="modal-close"
+                            onClick={() => setIsModalOpen(false)}
+                        >
+                            &times;
+                        </span>
+
+                        <h2 className="table-title">List of Student Scores</h2>
+
+                        {/* Semester Dropdown for filtering scores */}
+                        <div className="input-group">
+                            <label htmlFor="semester">Select Semester:</label>
+                            <select
+                                id="semester"
+                                value={selectedSemester}
+                                onChange={handleSemesterChange}
+                                className="input-field"
+                            >
+                                <option value={0}>Semester 1</option>
+                                <option value={1}>Semester 2</option>
+                            </select>
+                        </div>
+
+
+                        {/* Display filtered scores */}
+                        <div className="overflow-x-auto">
+                            <table className="table">
+                                <thead>
+                                <tr>
+                                    <th className="table-header">Subject</th>
+                                    <th className="table-header">Semester</th>
+                                    <th className="table-header">Exam Type</th>
+                                    <th className="table-header">Score</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                {filteredScores.length > 0 ? (
+                                    filteredScores.map((score, index) => (
+                                        <tr key={index}>
+                                            <td>{score.subjectName}</td>
+                                            <td>{semesterTypeMap[score.semesterType]}</td>
+                                            <td>{examTypeMap[score.examType]}</td>
+                                            <td>{score.scoreValue}</td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4">No scores available for the selected semester.</td>
+                                    </tr>
+                                )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
