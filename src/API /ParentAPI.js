@@ -106,6 +106,3 @@ export const getAverageScores = async (studentName, academicYear) => {
         throw error;  // Rethrow the error to handle it in the calling function
     }
 };
-
-
-

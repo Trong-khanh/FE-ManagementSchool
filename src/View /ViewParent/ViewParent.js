@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getDailyScores, getSubjectsAverageScores } from '../../API /ParentAPI';
+import { getDailyScores, getSubjectsAverageScores, getAverageScores } from '../../API /ParentAPI';
 import './ViewParent.css';
 import NavBarParent from "../NavBarParent";
 
@@ -14,12 +14,15 @@ const ViewParent = () => {
     const [error, setError] = useState(null);
     const [loadingAvg, setLoadingAvg] = useState(false);
     const [averageScores, setAverageScores] = useState([]);
+    const [overallAverages, setOverallAverages] = useState(null);
+    const [loadingOverall, setLoadingOverall] = useState(false);
 
-    // Separate state for showing different tables
+    // State for showing different tables
     const [showDailyScores, setShowDailyScores] = useState(false);
     const [showAverageScores, setShowAverageScores] = useState(false);
+    const [showOverallAverages, setShowOverallAverages] = useState(false);
 
-    // Fetch Daily Scores
+    // Existing fetch functions remain the same...
     const fetchDailyScores = useCallback(async () => {
         if (!studentName || !academicYear) {
             setError('Please enter student name and academic year');
@@ -33,7 +36,8 @@ const ViewParent = () => {
             if (result && Array.isArray(result) && result.length > 0) {
                 setScores(result);
                 setShowDailyScores(true);
-                setShowAverageScores(false); // Hide average scores table
+                setShowAverageScores(false);
+                setShowOverallAverages(false);
             } else {
                 setError('No daily scores found');
                 setScores([]);
@@ -46,7 +50,6 @@ const ViewParent = () => {
         }
     }, [studentName, academicYear]);
 
-    // Fetch Subject Average Scores
     const fetchAverageScores = useCallback(async () => {
         if (!studentName || !academicYear) {
             setError('Please enter student name and academic year');
@@ -60,7 +63,8 @@ const ViewParent = () => {
             if (result && Array.isArray(result) && result.length > 0) {
                 setAverageScores(result);
                 setShowAverageScores(true);
-                setShowDailyScores(false); // Hide daily scores table
+                setShowDailyScores(false);
+                setShowOverallAverages(false);
             } else {
                 setError('No average scores found');
                 setAverageScores([]);
@@ -73,6 +77,35 @@ const ViewParent = () => {
         }
     }, [studentName, academicYear]);
 
+    // New function to fetch overall averages
+    const fetchOverallAverages = useCallback(async () => {
+        if (!studentName || !academicYear) {
+            setError('Please enter student name and academic year');
+            return;
+        }
+
+        setLoadingOverall(true);
+        setError(null);
+        try {
+            const result = await getAverageScores(studentName, academicYear);
+            if (result && Array.isArray(result) && result.length > 0) {
+                setOverallAverages(result[0]); // Taking first item since it's one record per student
+                setShowOverallAverages(true);
+                setShowDailyScores(false);
+                setShowAverageScores(false);
+            } else {
+                setError('No overall averages found');
+                setOverallAverages(null);
+            }
+        } catch (error) {
+            setError('Failed to fetch overall averages');
+            setOverallAverages(null);
+        } finally {
+            setLoadingOverall(false);
+        }
+    }, [studentName, academicYear]);
+
+    // Existing filter function and effects remain the same...
     const filterScoresBySemester = useCallback(() => {
         let filtered = scores;
         if (semesterType !== '') {
@@ -95,6 +128,7 @@ const ViewParent = () => {
         setSearchQuery(e.target.value);
     };
 
+    // Existing rendering functions remain the same...
     const examTypeMap = {
         0: "Test When Class Begins",
         1: "15 Minutes Test",
@@ -192,6 +226,35 @@ const ViewParent = () => {
         );
     };
 
+    // New function to render overall averages
+    const renderOverallAverages = () => {
+        if (!showOverallAverages || !overallAverages) return null;
+
+        return (
+            <div className="scores-container">
+                <h2>Overall Average Scores</h2>
+                <div className="overall-averages-table">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Semester 1 Average</th>
+                            <th>Semester 2 Average</th>
+                            <th>Academic Year Average</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>{overallAverages.averageSemester1}</td>
+                            <td>{overallAverages.averageSemester2}</td>
+                            <td>{overallAverages.averageAcademicYear}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="view-parent-container">
             <NavBarParent searchQuery={searchQuery} onSearchChange={handleSearchChange} />
@@ -237,6 +300,14 @@ const ViewParent = () => {
                     >
                         {loadingAvg ? 'Loading...' : 'View Average Scores'}
                     </button>
+                    <button
+                        type="button"
+                        onClick={fetchOverallAverages}
+                        disabled={loadingOverall}
+                        className={showOverallAverages ? 'active' : ''}
+                    >
+                        {loadingOverall ? 'Loading...' : 'View Overall Averages'}
+                    </button>
                 </div>
             </form>
 
@@ -245,6 +316,7 @@ const ViewParent = () => {
             <div className="tables-container">
                 {renderDailyScoresTable()}
                 {renderAverageScoresTable()}
+                {renderOverallAverages()}
             </div>
         </div>
     );
