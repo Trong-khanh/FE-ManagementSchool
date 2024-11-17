@@ -1,254 +1,180 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from 'react';
+import { getDailyScores } from '../../API /ParentAPI';
+import './ViewParent.css';
 import NavBarParent from "../NavBarParent";
-import { getDailyScores, getSubjectsAverageScores } from "../../API /ParentAPI";
-import "./ViewParent.css";
-
-const examTypeMap = {
-    0: "Test When Class Begins",
-    1: "15 Minutes Test",
-    2: "45 Minutes Test",
-    3: "Semester Test",
-};
-
-const semesterTypeMap = {
-    0: "Semester 1",
-    1: "Semester 2",
-};
 
 const ViewParent = () => {
-    const [studentName, setStudentName] = useState("");
-    const [academicYear, setAcademicYear] = useState("");
-    const [scores, setScores] = useState([]);
-    const [averageScores, setAverageScores] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [studentName, setStudentName] = useState('');
+    const [className, setClassName] = useState('');
+    const [academicYear, setAcademicYear] = useState('');
+    const [semesterType, setSemesterType] = useState('');
     const [searchQuery, setSearchQuery] = useState("");
-    const [selectedSemester, setSelectedSemester] = useState(0);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isAverageModalOpen, setIsAverageModalOpen] = useState(false);
+    const [scores, setScores] = useState([]);
+    const [filteredScores, setFilteredScores] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
-    const handleGetScores = async () => {
-        if (!studentName || !academicYear) {
-            setError("Please complete all the fields");
-            return;
-        }
-
+    const fetchScores = useCallback(async () => {
         setLoading(true);
-        setError("");
-
         try {
-            const data = await getDailyScores(studentName, academicYear);
-            console.log("Received data: ", data);
-
-            if (!data || data.length === 0) {
-                setError("Score not found");
-                setScores([]);
-            } else {
-                setScores(data);
-                setIsModalOpen(true); // Show the modal when scores are fetched
-            }
-        } catch (err) {
-            setError(err.message || "An error occurred while retrieving the data");
+            const result = await getDailyScores(studentName, className, academicYear);
+            setScores(result);
+            setError(null);
+        } catch (error) {
+            setError('Failed to fetch scores');
+            setScores([]);
         } finally {
             setLoading(false);
         }
-    };
+    }, [studentName, className, academicYear]);
 
-    const handleGetAverageScores = async () => {
-        if (!studentName || !academicYear) {
-            setError("Please complete all the fields");
-            return;
+    const filterScoresBySemester = useCallback(() => {
+        let filtered = scores;
+        if (semesterType !== '') {
+            filtered = filtered.filter(score => score.semesterType === parseInt(semesterType));
         }
-
-        setLoading(true);
-        setError("");
-
-        try {
-            const data = await getSubjectsAverageScores(studentName, academicYear);
-            console.log("Received average scores: ", data); // Đã log ra DevTools
-
-            if (!data || data.length === 0) {
-                setError("No average scores found");
-                setAverageScores([]); // Nếu không có dữ liệu, xóa danh sách cũ
-            } else {
-                setAverageScores(data); // Gán dữ liệu vào state
-                setIsAverageModalOpen(true); // Mở modal
-            }
-        } catch (err) {
-            setError(err.message || "An error occurred while retrieving the average scores");
-        } finally {
-            setLoading(false);
+        if (searchQuery) {
+            filtered = filtered.filter(score =>
+                score.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                score.scoreValue.toString().includes(searchQuery)
+            );
         }
+        setFilteredScores(filtered);
+    }, [semesterType, searchQuery, scores]);
+
+    useEffect(() => {
+        if (studentName && className && academicYear) {
+            fetchScores();
+        }
+    }, [studentName, className, academicYear, fetchScores]);
+
+    useEffect(() => {
+        filterScoresBySemester();
+    }, [semesterType, searchQuery, scores, filterScoresBySemester]);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetchScores();
+        setShowModal(true);
     };
 
-
-    const handleSearchChange = (event) => {
-        setSearchQuery(event.target.value);
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
     };
 
-    const handleSemesterChange = (event) => {
-        setSelectedSemester(Number(event.target.value));
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSemesterType('');
     };
 
-    const filteredScores = scores
-        .filter(
-            (score) =>
-                score.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-                score.semesterType === selectedSemester
-        );
+    const examTypeMap = {
+        0: "Test When Class Begins",
+        1: "15 Minutes Test",
+        2: "45 Minutes Test",
+        3: "Semester Test",
+    };
+
+    const semesterTypeMap = {
+        0: "Semester 1",
+        1: "Semester 2",
+    };
 
     return (
-        <div>
+        <div className="view-parent-container">
             <NavBarParent searchQuery={searchQuery} onSearchChange={handleSearchChange} />
+            <h1 style={{ textAlign: 'center' }}>View Student Scores</h1>
 
-            {/* Form input */}
-            <div className="form">
-                <h1 className="title">List Student Score</h1>
-                <div className="input-group">
-                    <label htmlFor="studentName">Student Full Name:</label>
-                    <input
-                        type="text"
-                        id="studentName"
-                        value={studentName}
-                        onChange={(e) => setStudentName(e.target.value)}
-                        className="input-field"
-                    />
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label>
+                        Student Name:
+                        <input
+                            type="text"
+                            value={studentName}
+                            onChange={(e) => setStudentName(e.target.value)}
+                            required
+                        />
+                    </label>
                 </div>
-
-                <div className="input-group">
-                    <label htmlFor="academicYear">Academic Year:</label>
-                    <input
-                        type="text"
-                        id="academicYear"
-                        value={academicYear}
-                        onChange={(e) => setAcademicYear(e.target.value)}
-                        className="input-field"
-                    />
+                <div>
+                    <label>
+                        Class Name:
+                        <input
+                            type="text"
+                            value={className}
+                            onChange={(e) => setClassName(e.target.value)}
+                            required
+                        />
+                    </label>
                 </div>
-
-                <button
-                    onClick={handleGetScores}
-                    disabled={loading}
-                    className="submit-btn"
-                >
-                    {loading ? "Loading..." : "View Score"}
+                <div>
+                    <label>
+                        Academic Year:
+                        <input
+                            type="text"
+                            value={academicYear}
+                            onChange={(e) => setAcademicYear(e.target.value)}
+                            required
+                        />
+                    </label>
+                </div>
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Loading...' : 'View Scores'}
                 </button>
+            </form>
 
-                <button
-                    onClick={handleGetAverageScores}
-                    disabled={loading}
-                    className="submit-btn"
-                >
-                    {loading ? "Loading..." : "Get Subject Average Score"}
-                </button>
+            {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
 
-                {error && <p className="error-message">{error}</p>}
-            </div>
-
-            {/* Modal for displaying filtered scores */}
-            {isModalOpen && (
-                <div className="modal" style={{ display: "block" }}>
+            {showModal && (
+                <div className="modal-container">
                     <div className="modal-content">
-                        <span
-                            className="modal-close"
-                            onClick={() => setIsModalOpen(false)}
-                        >
+                        <button className="close-btn" onClick={handleCloseModal}>
                             &times;
-                        </span>
-
-                        <h2 className="table-title">List of Student Scores</h2>
-
-                        {/* Semester Dropdown for filtering scores */}
-                        <div className="input-group">
-                            <label htmlFor="semester">Select Semester:</label>
-                            <select
-                                id="semester"
-                                value={selectedSemester}
-                                onChange={handleSemesterChange}
-                                className="input-field"
-                            >
-                                <option value={0}>Semester 1</option>
-                                <option value={1}>Semester 2</option>
-                            </select>
+                        </button>
+                        <h2>Student Scores</h2>
+                        <div className="semester-filter">
+                            <label>
+                                Select Semester:
+                                <select
+                                    value={semesterType}
+                                    onChange={(e) => setSemesterType(e.target.value)}
+                                >
+                                    <option value="">Select Semester</option>
+                                    <option value="0">Semester 1</option>
+                                    <option value="1">Semester 2</option>
+                                </select>
+                            </label>
                         </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="table">
-                                <thead>
-                                <tr>
-                                    <th className="table-header">Subject</th>
-                                    <th className="table-header">Semester</th>
-                                    <th className="table-header">Exam Type</th>
-                                    <th className="table-header">Score</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {filteredScores.length > 0 ? (
-                                    filteredScores.map((score, index) => (
+                        <div className="scores-table">
+                            {filteredScores.length > 0 ? (
+                                <table>
+                                    <thead>
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Semester Type</th>
+                                        <th>Exam Type</th>
+                                        <th>Score</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {filteredScores.map((score, index) => (
                                         <tr key={index}>
                                             <td>{score.subjectName}</td>
                                             <td>{semesterTypeMap[score.semesterType]}</td>
                                             <td>{examTypeMap[score.examType]}</td>
                                             <td>{score.scoreValue}</td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4">No scores available for the selected semester.</td>
-                                    </tr>
-                                )}
-                                </tbody>
-                            </table>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            ) : (
+                                <p>No scores found for the selected semester or search query.</p>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Modal for displaying average scores */}
-            {isAverageModalOpen && (
-                <div className="modal" style={{ display: "block" }}>
-                    <div className="modal-content">
-            <span
-                className="modal-close"
-                onClick={() => setIsAverageModalOpen(false)}
-            >
-                &times;
-            </span>
-
-                        <h2 className="table-title">Subject Average Scores</h2>
-
-                        <div className="overflow-x-auto">
-                            <table className="table">
-                                <thead>
-                                <tr>
-                                    <th className="table-header">Subject</th>
-                                    <th className="table-header">Semester 1 Average</th>
-                                    <th className="table-header">Semester 2 Average</th>
-                                    <th className="table-header">Annual Average</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {averageScores.length > 0 ? (
-                                    averageScores.map((score, index) => (
-                                        <tr key={index}>
-                                            <td>{score.subjectName}</td>
-                                            <td>{score.semesterAverage1}</td>
-                                            <td>{score.semesterAverage2}</td>
-                                            <td>{score.annualAverage}</td>
-                                        </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4">No average scores available.</td>
-                                    </tr>
-                                )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            )}
-
         </div>
     );
 };

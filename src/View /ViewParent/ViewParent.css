@@ -1,126 +1,102 @@
-/* Form Styling */
-.form {
+/* Căn giữa form trên trang */
+form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    width: 500px;
-    margin: 30px auto 0;
-    padding: 30px;
-    box-sizing: border-box;
-    background-color: #EEEEEE;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-/* Title Styling */
-.title {
-    text-align: center;
-    margin: 0 0 20px 0;
-    font-size: 24px;
-    font-weight: bold;
-}
-
-/* Input Group Styling */
-.input-group {
-    margin-bottom: 15px;
-    padding: 0 15px;
-}
-
-.input-group label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-}
-
-.input-field {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 400px;
     border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Căn chỉnh các input trong form */
+form div {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+form label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+form input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
 }
 
-/* Submit Button Container */
-.button-container {
-    padding: 0 15px;
-    margin-top: 10px;
-}
-
-/* Submit Button Styling */
-.submit-btn {
-    width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
+button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s;
 }
 
-.submit-btn:hover {
-    background-color: #45a049;
+button:disabled {
+    background-color: #ccc;
 }
 
-.submit-btn:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-}
-
-/* Error Message Styling */
-.error-message {
-    color: #f44336;
-    font-size: 14px;
-    text-align: center;
-    margin: 10px 15px 0;
-}
-/* Modal Styling */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    max-width: 800px;
-    height: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-/* Modal content */
-.modal-content {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-/* Close button */
-.modal-close {
-    color: #aaa;
-    font-size: 28px;
-    font-weight: bold;
-    float: right;
-    cursor: pointer;
-}
-
-.modal-close:hover,
-.modal-close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-/* Select dropdown styling */
-.input-group select {
-    width: 110px;
-    padding: 5px;
-    font-size: 14px;
+/* Modal hiển thị bên dưới form */
+.modal-container {
+    margin: 20px auto 0;
+    max-width: 600px;
     border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    padding: 0; /* Loại padding tổng để không tạo khoảng dư thừa */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Đảm bảo phần nội dung không tràn khỏi modal */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Nội dung bên trong modal có thể cuộn */
+.modal-content {
+    max-height: 400px; /* Giới hạn chiều cao */
+    overflow-y: auto; /* Cuộn nội dung dọc */
+    padding: 20px; /* Padding bên trong modal */
+}
+
+/* Căn chỉnh nút đóng */
+.close-btn {
+    align-self: flex-end;
+    background-color: #ff5c5c;
+    border: none;
+    color: #fff;
+    padding: 5px 10px;
     border-radius: 4px;
-    background-color: white;
+    cursor: pointer;
+    margin: 10px;
+}
+
+/* Bảng điểm căn giữa */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+}
+
+table th,
+table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+.semester-filter {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    margin-top: 15px;
 }
