@@ -49,13 +49,11 @@ userApi.interceptors.response.use((response) => response, async (error) => {
 });
 
 // Hàm gọi API lấy điểm hàng ngày của học sinh
-export const getDailyScores = async (studentName, className, academicYear) => {
+export const getDailyScores = async (studentName, academicYear) => {
     try {
         const response = await userApi.get('/Parent/GetDailyScores', {
             params: {
-                studentName: studentName,
-                className: className,  // Pass the className here
-                academicYear: academicYear,
+                studentName: studentName, academicYear: academicYear,
             },
         });
 
@@ -87,5 +85,27 @@ export const getSubjectsAverageScores = async (studentName, academicYear) => {
         throw error;
     }
 };
+
+// Hàm gọi API lấy điểm trung bình của học sinh
+export const getAverageScores = async (studentName, academicYear) => {
+    try {
+        // Make the GET request to the 'GetAverageScores' endpoint
+        const response = await userApi.get('/Parent/GetAverageScores', {
+            params: {
+                studentName: studentName, academicYear: academicYear,
+            },
+        });
+
+        // If the response status is 200 (OK), return the data
+        if (response.status === 200) {
+            return response.data;
+        }
+    } catch (error) {
+        // Log any errors that occur during the request
+        console.error('Error fetching average scores:', error);
+        throw error;  // Rethrow the error to handle it in the calling function
+    }
+};
+
 
 

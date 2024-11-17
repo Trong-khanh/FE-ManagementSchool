@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getDailyScores } from '../../API /ParentAPI';
+import { getDailyScores, getSubjectsAverageScores } from '../../API /ParentAPI';
 import './ViewParent.css';
 import NavBarParent from "../NavBarParent";
 
 const ViewParent = () => {
     const [studentName, setStudentName] = useState('');
-    const [className, setClassName] = useState('');
     const [academicYear, setAcademicYear] = useState('');
     const [semesterType, setSemesterType] = useState('');
     const [searchQuery, setSearchQuery] = useState("");
@@ -13,21 +12,66 @@ const ViewParent = () => {
     const [filteredScores, setFilteredScores] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [showModal, setShowModal] = useState(false);
+    const [loadingAvg, setLoadingAvg] = useState(false);
+    const [averageScores, setAverageScores] = useState([]);
 
-    const fetchScores = useCallback(async () => {
+    // Separate state for showing different tables
+    const [showDailyScores, setShowDailyScores] = useState(false);
+    const [showAverageScores, setShowAverageScores] = useState(false);
+
+    // Fetch Daily Scores
+    const fetchDailyScores = useCallback(async () => {
+        if (!studentName || !academicYear) {
+            setError('Please enter student name and academic year');
+            return;
+        }
+
         setLoading(true);
+        setError(null);
         try {
-            const result = await getDailyScores(studentName, className, academicYear);
-            setScores(result);
-            setError(null);
+            const result = await getDailyScores(studentName, academicYear);
+            if (result && Array.isArray(result) && result.length > 0) {
+                setScores(result);
+                setShowDailyScores(true);
+                setShowAverageScores(false); // Hide average scores table
+            } else {
+                setError('No daily scores found');
+                setScores([]);
+            }
         } catch (error) {
-            setError('Failed to fetch scores');
+            setError('Failed to fetch daily scores');
             setScores([]);
         } finally {
             setLoading(false);
         }
-    }, [studentName, className, academicYear]);
+    }, [studentName, academicYear]);
+
+    // Fetch Subject Average Scores
+    const fetchAverageScores = useCallback(async () => {
+        if (!studentName || !academicYear) {
+            setError('Please enter student name and academic year');
+            return;
+        }
+
+        setLoadingAvg(true);
+        setError(null);
+        try {
+            const result = await getSubjectsAverageScores(studentName, academicYear);
+            if (result && Array.isArray(result) && result.length > 0) {
+                setAverageScores(result);
+                setShowAverageScores(true);
+                setShowDailyScores(false); // Hide daily scores table
+            } else {
+                setError('No average scores found');
+                setAverageScores([]);
+            }
+        } catch (error) {
+            setError('Failed to fetch average scores');
+            setAverageScores([]);
+        } finally {
+            setLoadingAvg(false);
+        }
+    }, [studentName, academicYear]);
 
     const filterScoresBySemester = useCallback(() => {
         let filtered = scores;
@@ -44,28 +88,11 @@ const ViewParent = () => {
     }, [semesterType, searchQuery, scores]);
 
     useEffect(() => {
-        if (studentName && className && academicYear) {
-            fetchScores();
-        }
-    }, [studentName, className, academicYear, fetchScores]);
-
-    useEffect(() => {
         filterScoresBySemester();
     }, [semesterType, searchQuery, scores, filterScoresBySemester]);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        fetchScores();
-        setShowModal(true);
-    };
-
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-        setSemesterType('');
     };
 
     const examTypeMap = {
@@ -80,12 +107,97 @@ const ViewParent = () => {
         1: "Semester 2",
     };
 
+    const renderDailyScoresTable = () => {
+        if (!showDailyScores) return null;
+
+        return (
+            <div className="scores-container">
+                <h2>Daily Scores</h2>
+                <div className="semester-filter">
+                    <label>
+                        Select Semester:
+                        <select
+                            value={semesterType}
+                            onChange={(e) => setSemesterType(e.target.value)}
+                        >
+                            <option value="">All Semesters</option>
+                            <option value="0">Semester 1</option>
+                            <option value="1">Semester 2</option>
+                        </select>
+                    </label>
+                </div>
+                <div className="scores-table">
+                    {filteredScores.length > 0 ? (
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Semester Type</th>
+                                <th>Exam Type</th>
+                                <th>Score</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {filteredScores.map((score, index) => (
+                                <tr key={index}>
+                                    <td>{score.subjectName}</td>
+                                    <td>{semesterTypeMap[score.semesterType]}</td>
+                                    <td>{examTypeMap[score.examType]}</td>
+                                    <td>{score.scoreValue}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No daily scores found for the selected criteria.</p>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderAverageScoresTable = () => {
+        if (!showAverageScores) return null;
+
+        return (
+            <div className="scores-container">
+                <h2>Subject Average Scores</h2>
+                <div className="average-scores-table">
+                    {averageScores.length > 0 ? (
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Semester 1 Average</th>
+                                <th>Semester 2 Average</th>
+                                <th>Annual Average</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {averageScores.map((avg, index) => (
+                                <tr key={index}>
+                                    <td>{avg.subjectName}</td>
+                                    <td>{avg.semesterAverage1}</td>
+                                    <td>{avg.semesterAverage2}</td>
+                                    <td>{avg.annualAverage}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    ) : (
+                        <p>No average scores available.</p>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="view-parent-container">
             <NavBarParent searchQuery={searchQuery} onSearchChange={handleSearchChange} />
             <h1 style={{ textAlign: 'center' }}>View Student Scores</h1>
 
-            <form onSubmit={handleSubmit}>
+            <form className="search-form">
                 <div>
                     <label>
                         Student Name:
@@ -93,17 +205,6 @@ const ViewParent = () => {
                             type="text"
                             value={studentName}
                             onChange={(e) => setStudentName(e.target.value)}
-                            required
-                        />
-                    </label>
-                </div>
-                <div>
-                    <label>
-                        Class Name:
-                        <input
-                            type="text"
-                            value={className}
-                            onChange={(e) => setClassName(e.target.value)}
                             required
                         />
                     </label>
@@ -119,62 +220,32 @@ const ViewParent = () => {
                         />
                     </label>
                 </div>
-                <button type="submit" disabled={loading}>
-                    {loading ? 'Loading...' : 'View Scores'}
-                </button>
+                <div className="button-group">
+                    <button
+                        type="button"
+                        onClick={fetchDailyScores}
+                        disabled={loading}
+                        className={showDailyScores ? 'active' : ''}
+                    >
+                        {loading ? 'Loading...' : 'View Daily Scores'}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={fetchAverageScores}
+                        disabled={loadingAvg}
+                        className={showAverageScores ? 'active' : ''}
+                    >
+                        {loadingAvg ? 'Loading...' : 'View Average Scores'}
+                    </button>
+                </div>
             </form>
 
-            {error && <div style={{ color: 'red', textAlign: 'center' }}>{error}</div>}
+            {error && <div className="error-message">{error}</div>}
 
-            {showModal && (
-                <div className="modal-container">
-                    <div className="modal-content">
-                        <button className="close-btn" onClick={handleCloseModal}>
-                            &times;
-                        </button>
-                        <h2>Student Scores</h2>
-                        <div className="semester-filter">
-                            <label>
-                                Select Semester:
-                                <select
-                                    value={semesterType}
-                                    onChange={(e) => setSemesterType(e.target.value)}
-                                >
-                                    <option value="">Select Semester</option>
-                                    <option value="0">Semester 1</option>
-                                    <option value="1">Semester 2</option>
-                                </select>
-                            </label>
-                        </div>
-                        <div className="scores-table">
-                            {filteredScores.length > 0 ? (
-                                <table>
-                                    <thead>
-                                    <tr>
-                                        <th>Subject</th>
-                                        <th>Semester Type</th>
-                                        <th>Exam Type</th>
-                                        <th>Score</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {filteredScores.map((score, index) => (
-                                        <tr key={index}>
-                                            <td>{score.subjectName}</td>
-                                            <td>{semesterTypeMap[score.semesterType]}</td>
-                                            <td>{examTypeMap[score.examType]}</td>
-                                            <td>{score.scoreValue}</td>
-                                        </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
-                            ) : (
-                                <p>No scores found for the selected semester or search query.</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            )}
+            <div className="tables-container">
+                {renderDailyScoresTable()}
+                {renderAverageScoresTable()}
+            </div>
         </div>
     );
 };

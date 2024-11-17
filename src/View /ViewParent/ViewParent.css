@@ -1,102 +1,126 @@
-/* Căn giữa form trên trang */
-form {
+.search-form {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    margin: 0 auto;
+    gap: 15px;
     padding: 20px;
-    max-width: 400px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
     background-color: #f9f9f9;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Căn chỉnh các input trong form */
-form div {
-    margin-bottom: 15px;
-    width: 100%;
-}
-
-form label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-form input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:disabled {
-    background-color: #ccc;
-}
-
-/* Modal hiển thị bên dưới form */
-.modal-container {
-    margin: 20px auto 0;
-    max-width: 600px;
-    border: 1px solid #ddd;
     border-radius: 8px;
-    background-color: #fff;
-    padding: 0; /* Loại padding tổng để không tạo khoảng dư thừa */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* Đảm bảo phần nội dung không tràn khỏi modal */
-    display: flex;
-    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Nội dung bên trong modal có thể cuộn */
-.modal-content {
-    max-height: 400px; /* Giới hạn chiều cao */
-    overflow-y: auto; /* Cuộn nội dung dọc */
-    padding: 20px; /* Padding bên trong modal */
+
+
+.search-form label {
+
+    margin-bottom: 5px;
+    font-weight: bold;
 }
 
-/* Căn chỉnh nút đóng */
-.close-btn {
-    align-self: flex-end;
-    background-color: #ff5c5c;
-    border: none;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin: 10px;
-}
-
-/* Bảng điểm căn giữa */
-table {
+.search-form input {
     width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
-table th,
-table td {
-    border: 1px solid #ddd;
-    padding: 8px;
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.button-group button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button-group button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.button-group button.active {
+    background-color: #0056b3;
+}
+
+.error-message {
+    color: red;
     text-align: center;
+    margin: 10px 0;
+}
+
+.tables-container {
+    margin-top: 20px;
+}
+
+.scores-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.scores-container h2 {
+    margin-bottom: 20px;
+    color: #333;
 }
 
 .semester-filter {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
+    margin-bottom: 20px;
+}
+
+.semester-filter select {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-left: 10px;
+}
+
+table {
     width: 100%;
-    margin-top: 15px;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f5f5f5;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f0f0f0;
+}
+
+.average-scores-table table th,
+.average-scores-table table td {
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .button-group {
+        flex-direction: column;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
 }
