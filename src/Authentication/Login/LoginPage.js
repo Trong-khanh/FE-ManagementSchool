@@ -50,7 +50,7 @@ const SignInSide = () => {
         } else if (userRole === "Teacher") {
           navigate("/teacher/class");
         } else if (userRole === "Student") {
-          navigate("/student");
+          navigate("/student/viewscore");
         } else if (userRole === "Parent") {
           navigate("/parent/viewsocreandpayment");
         } else {
