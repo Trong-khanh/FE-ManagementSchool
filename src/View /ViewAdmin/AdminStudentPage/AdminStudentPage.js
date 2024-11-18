@@ -1,18 +1,10 @@
 import React, {useEffect, useState} from "react";
 import {
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Button,
+    Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button,
 } from "@mui/material";
 import NavBar from "../../NavBar.js";
 import {
-    addStudent,
-    GetAllStudent,
-    UpdateStudent,
-    DeleteStudent
+    addStudent, GetAllStudent, UpdateStudent, DeleteStudent
 } from "../../../API /CRUDStudentAPI";
 import {getAllClasses} from "../../../API /CRUDClassAPI";
 import {getAllSemesters} from "../../../API /CRUDSemesterAPI";
@@ -20,11 +12,7 @@ import "./AdminStudentPage.css";
 
 function AdminStudentPage() {
     const [formData, setFormData] = useState({
-        fullName: "",
-        address: "",
-        className: "",
-        parentName: "",
-        academicYear: "",
+        fullName: "", address: "", className: "", parentName: "", academicYear: "", parentEmail: "",
     });
     const [editingIndex, setEditingIndex] = useState(null);
     const [showStudentList, setShowStudentList] = useState([]);
@@ -80,10 +68,10 @@ function AdminStudentPage() {
 
         try {
             if (editingIndex === null) {
-                await addStudent(formData); // Gửi thông tin học sinh bao gồm năm học đã chọn
+                await addStudent(formData); // Gửi thêm Parent Email
             } else {
                 if (formData.studentId) {
-                    await UpdateStudent(formData.studentId, formData);
+                    await UpdateStudent(formData.studentId, formData); // Cập nhật thêm Parent Email
                 } else {
                     console.error("Invalid student ID");
                 }
@@ -91,17 +79,11 @@ function AdminStudentPage() {
             await fetchListStudent();
             setEditingIndex(null);
             setFormData({
-                fullName: "",
-                address: "",
-                className: "",
-                parentName: "",
-                academicYear: "",
+                fullName: "", address: "", className: "", parentName: "", academicYear: "", parentEmail: "", // Reset Parent Email
             });
         } catch (error) {
             console.error("Error details:", error.response || error.message);
-            setErrorMessage(
-                "School year does not exist, please check the semester again"
-            );
+            setErrorMessage("School year does not exist, please check the semester again");
             setOpenErrorDialog(true);
         }
     };
@@ -115,9 +97,11 @@ function AdminStudentPage() {
             className: student.className,
             parentName: student.parentName,
             academicYear: student.academicYear,
+            parentEmail: student.parentEmail, // Điền thêm Parent Email
         });
         setEditingIndex(index);
     };
+
 
     const handleOpenConfirmDialog = (index) => {
         setDeletingIndex(index);
@@ -138,9 +122,7 @@ function AdminStudentPage() {
             await fetchListStudent();
         } catch (error) {
             console.error("Error deleting student:", error);
-            setErrorMessage(
-                "Error deleting student: " + (error.response || error.message)
-            );
+            setErrorMessage("Error deleting student: " + (error.response || error.message));
             setOpenErrorDialog(true);
         }
 
@@ -155,36 +137,25 @@ function AdminStudentPage() {
         const matchesSearch = student.fullName
             .toLowerCase()
             .includes(searchQuery.toLowerCase());
-        const matchesClass = selectedClass
-            ? student.class?.className === selectedClass
-            : true;
+        const matchesClass = selectedClass ? student.class?.className === selectedClass : true;
         return matchesSearch && matchesClass;
     });
 
     const styles = {
         pageTitle: {
-            textAlign: "center",
-            color: '#2d3748',
-            marginBottom: '24px',
-            fontSize: '28px',
-            fontWeight: '600'
-        },
-        pageContainer: {
+            textAlign: "center", color: '#2d3748', marginBottom: '24px', fontSize: '28px', fontWeight: '600'
+        },  pageContainer: {
             display: 'flex',
             gap: '32px',
             maxWidth: '1400px',
             margin: '0 auto',
             padding: '20px',
-        },
-        leftSection: {
-            flex: '1',
-            minWidth: '400px',
-        },
-        rightSection: {
-            flex: '1.8',
-            minWidth: 0,
-        },
-        formCard: {
+        }, leftSection: {
+            flex: '0 0 350px',
+            minWidth: 'auto',
+        }, rightSection: {
+            flex: '1.8', minWidth: 0,
+        }, formCard: {
             position: 'sticky',
             top: '20px',
             backgroundColor: '#ffffff',
@@ -192,31 +163,19 @@ function AdminStudentPage() {
             padding: '24px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             border: '1px solid #e1e4e8',
-        },
-        listCard: {
+        }, listCard: {
             backgroundColor: '#f8fafc',
             borderRadius: '12px',
             padding: '24px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)',
             border: '1px solid #e1e4e8',
-        },
-        formTitle: {
-            margin: '0 0 24px 0',
-            color: '#2c3e50',
-            fontSize: '1.5rem',
-            fontWeight: '600',
-        },
-        formGroup: {
+        }, formTitle: {
+            margin: '0 0 24px 0', color: '#2c3e50', fontSize: '1.5rem', fontWeight: '600',
+        }, formGroup: {
             marginBottom: '20px',
-        },
-        label: {
-            display: 'block',
-            marginBottom: '8px',
-            color: '#4a5568',
-            fontWeight: '500',
-            fontSize: '14px',
-        },
-        input: {
+        }, label: {
+            display: 'block', marginBottom: '8px', color: '#4a5568', fontWeight: '500', fontSize: '14px',
+        }, input: {
             width: '100%',
             height: '42px',
             padding: '8px 12px',
@@ -229,8 +188,7 @@ function AdminStudentPage() {
             outline: 'none',
             margin: 0,
             '&:focus': {
-                borderColor: '#4CAF50',
-                boxShadow: '0 0 0 3px rgba(76, 175, 80, 0.1)',
+                borderColor: '#4CAF50', boxShadow: '0 0 0 3px rgba(76, 175, 80, 0.1)',
             }
         },
 
@@ -244,8 +202,7 @@ function AdminStudentPage() {
             backgroundColor: 'white',
             transition: 'all 0.2s ease',
             outline: 'none',
-        },
-        button: {
+        }, button: {
             width: '100%',
             height: '42px',
             backgroundColor: '#4CAF50',
@@ -259,8 +216,7 @@ function AdminStudentPage() {
             '&:hover': {
                 backgroundColor: '#45a049',
             }
-        },
-        filterContainer: {
+        }, filterContainer: {
             marginBottom: '20px',
             display: 'flex',
             alignItems: 'center',
@@ -269,16 +225,14 @@ function AdminStudentPage() {
             backgroundColor: '#ffffff',
             borderRadius: '8px',
             border: '1px solid #e2e8f0',
-        },
-        table: {
+        }, table: {
             width: '100%',
             borderCollapse: 'separate',
             borderSpacing: '0',
             backgroundColor: '#ffffff',
             borderRadius: '8px',
             overflow: 'hidden',
-        },
-        th: {
+        }, th: {
             backgroundColor: '#f1f5f9',
             padding: '12px 16px',
             textAlign: 'left',
@@ -287,14 +241,9 @@ function AdminStudentPage() {
             borderBottom: '2px solid #e2e8f0',
             whiteSpace: 'nowrap',
             fontSize: '14px',
-        },
-        td: {
-            padding: '12px 16px',
-            borderBottom: '1px solid #e2e8f0',
-            color: '#2d3748',
-            fontSize: '14px',
-        },
-        actionButton: {
+        }, td: {
+            padding: '12px 16px', borderBottom: '1px solid #e2e8f0', color: '#2d3748', fontSize: '14px',
+        }, actionButton: {
             height: '32px',
             padding: '0 12px',
             border: 'none',
@@ -303,213 +252,219 @@ function AdminStudentPage() {
             fontWeight: '500',
             fontSize: '13px',
             transition: 'background-color 0.2s',
-        },
-        dialog: {
+        }, dialog: {
             '& .MuiDialog-paper': {
-                borderRadius: '12px',
-                padding: '12px',
+                borderRadius: '12px', padding: '12px',
             }
         }
     };
 
-  return (
-      <div style={styles.mainContainer}>
-        <NavBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
-        <h1 style={{ textAlign: "center", color: '#2d3748', marginBottom: '24px' }}>Student Management</h1>
+    return (<div style={styles.mainContainer}>
+            <NavBar searchQuery={searchQuery} onSearchChange={handleSearchChange}/>
+            <h1 style={{textAlign: "center", color: '#2d3748', marginBottom: '24px'}}>Student Management</h1>
 
-        <div style={styles.pageContainer}>
-          {/* Left Section - Form */}
-          <div style={styles.leftSection}>
-            <div style={styles.formCard}>
-              <h2 style={styles.formTitle}>
-                {editingIndex !== null ? "Edit Student" : "Add New Student"}
-              </h2>
-              <form onSubmit={handleSubmit}>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Full Name</label>
-                  <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter full name"
-                      style={styles.input}
-                  />
+            <div style={styles.pageContainer}>
+                {/* Left Section - Form */}
+                <div style={styles.leftSection}>
+                    <div style={styles.formCard}>
+                        <h2 style={styles.formTitle}>
+                            {editingIndex !== null ? "Edit Student" : "Add New Student"}
+                        </h2>
+                        <form onSubmit={handleSubmit}>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Full Name</label>
+                                <input
+                                    type="text"
+                                    name="fullName"
+                                    value={formData.fullName}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Enter full name"
+                                    style={styles.input}
+                                />
+                            </div>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Address</label>
+                                <input
+                                    type="text"
+                                    name="address"
+                                    value={formData.address}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Enter address"
+                                    style={styles.input}
+                                />
+                            </div>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Class</label>
+                                <select
+                                    name="className"
+                                    value={formData.className}
+                                    onChange={handleChange}
+                                    required
+                                    style={styles.select}
+                                >
+                                    <option value="">Select Class</option>
+                                    {classList.map((classItem) => (
+                                        <option key={classItem.classId} value={classItem.className}>
+                                            {classItem.className}
+                                        </option>))}
+                                </select>
+                            </div>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Parent Name</label>
+                                <input
+                                    type="text"
+                                    name="parentName"
+                                    value={formData.parentName}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Enter parent's name"
+                                    style={styles.input}
+                                />
+                            </div>
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Parent Email</label>
+                                <input
+                                    type="email"
+                                    name="parentEmail"
+                                    value={formData.parentEmail}
+                                    onChange={handleChange}
+                                    required
+                                    placeholder="Enter parent's email"
+                                    style={styles.input}
+                                />
+                            </div>
+
+                            <div style={styles.formGroup}>
+                                <label style={styles.label}>Academic Year</label>
+                                <select
+                                    name="academicYear"
+                                    value={formData.academicYear}
+                                    onChange={handleChange}
+                                    required
+                                    style={styles.select}
+                                >
+                                    <option value="">Select Academic Year</option>
+                                    {academicYears.map((year) => (
+                                        <option key={year.semesterId} value={year.academicYear}>
+                                            {year.academicYear}
+                                        </option>))}
+                                </select>
+                            </div>
+                            <button type="submit" style={styles.button}>
+                                {editingIndex !== null ? "Update Student" : "Add Student"}
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Address</label>
-                  <input
-                      type="text"
-                      name="address"
-                      value={formData.address}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter address"
-                      style={styles.input}
-                  />
+
+                {/* Right Section - Student List */}
+                <div style={styles.rightSection}>
+                    <div style={styles.listCard}>
+                        <div style={styles.filterContainer}>
+                            <label style={{...styles.label, marginBottom: 0}}>Filter by Class:</label>
+                            <select
+                                value={selectedClass}
+                                onChange={(e) => setSelectedClass(e.target.value)}
+                                style={{...styles.select, width: 'auto'}}
+                            >
+                                <option value="">All Classes</option>
+                                {classList.map((classItem) => (
+                                    <option key={classItem.classId} value={classItem.className}>
+                                        {classItem.className}
+                                    </option>))}
+                            </select>
+                        </div>
+
+                        <div style={{overflowX: 'auto'}}>
+                            <table style={styles.table}>
+                                <thead>
+                                <tr>
+                                    <th style={styles.th}>Full Name</th>
+                                    <th style={styles.th}>Address</th>
+                                    <th style={styles.th}>Class Name</th>
+                                    <th style={styles.th}>Parent Name</th>
+                                    <th style={styles.th}>Parent Email</th>
+                                    {/* Thêm cột Parent Email */}
+                                    <th style={styles.th}>Academic Year</th>
+                                    <th style={styles.th}>Actions</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {filteredStudents.map((student, index) => (<tr key={student.studentId}>
+                                        <td style={styles.td}>{student.fullName}</td>
+                                        <td style={styles.td}>{student.address}</td>
+                                        <td style={styles.td}>{student.class?.className || "No Class Assigned"}</td>
+                                        <td style={styles.td}>{student.parentName}</td>
+                                        <td style={styles.td}>{student.parentEmail}</td>
+                                        {/* Hiển thị Parent Email */}
+                                        <td style={styles.td}>{student.academicYear}</td>
+                                        <td style={styles.td}>
+                                            <button
+                                                onClick={() => handleEdit(index)}
+                                                style={{
+                                                    ...styles.actionButton,
+                                                    backgroundColor: '#3b82f6',
+                                                    color: 'white',
+                                                    marginRight: '8px'
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleOpenConfirmDialog(index)}
+                                                style={{
+                                                    ...styles.actionButton, backgroundColor: '#ef4444', color: 'white'
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Class</label>
-                  <select
-                      name="className"
-                      value={formData.className}
-                      onChange={handleChange}
-                      required
-                      style={styles.select}
-                  >
-                    <option value="">Select Class</option>
-                    {classList.map((classItem) => (
-                        <option key={classItem.classId} value={classItem.className}>
-                          {classItem.className}
-                        </option>
-                    ))}
-                  </select>
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Parent Name</label>
-                  <input
-                      type="text"
-                      name="parentName"
-                      value={formData.parentName}
-                      onChange={handleChange}
-                      required
-                      placeholder="Enter parent's name"
-                      style={styles.input}
-                  />
-                </div>
-                <div style={styles.formGroup}>
-                  <label style={styles.label}>Academic Year</label>
-                  <select
-                      name="academicYear"
-                      value={formData.academicYear}
-                      onChange={handleChange}
-                      required
-                      style={styles.select}
-                  >
-                    <option value="">Select Academic Year</option>
-                    {academicYears.map((year) => (
-                        <option key={year.semesterId} value={year.academicYear}>
-                          {year.academicYear}
-                        </option>
-                    ))}
-                  </select>
-                </div>
-                <button type="submit" style={styles.button}>
-                  {editingIndex !== null ? "Update Student" : "Add Student"}
-                </button>
-              </form>
             </div>
-          </div>
 
-          {/* Right Section - Student List */}
-          <div style={styles.rightSection}>
-            <div style={styles.listCard}>
-              <div style={styles.filterContainer}>
-                <label style={{...styles.label, marginBottom: 0}}>Filter by Class:</label>
-                <select
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    style={{...styles.select, width: 'auto'}}
-                >
-                  <option value="">All Classes</option>
-                  {classList.map((classItem) => (
-                      <option key={classItem.classId} value={classItem.className}>
-                        {classItem.className}
-                      </option>
-                  ))}
-                </select>
-              </div>
+            {/* Dialogs */}
+            <Dialog
+                open={openConfirmDialog}
+                onClose={handleCloseConfirmDialog}
+            >
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to delete this student?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseConfirmDialog} color="primary">
+                        Cancel
+                    </Button>
+                    <Button onClick={handleConfirmDelete} color="secondary">
+                        Confirm
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-              <div style={{ overflowX: 'auto' }}>
-                <table style={styles.table}>
-                  <thead>
-                  <tr>
-                    <th style={styles.th}>Full Name</th>
-                    <th style={styles.th}>Address</th>
-                    <th style={styles.th}>Class Name</th>
-                    <th style={styles.th}>Parent Name</th>
-                    <th style={styles.th}>Academic Year</th>
-                    <th style={styles.th}>Actions</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {filteredStudents.map((student, index) => (
-                      <tr key={student.studentId}>
-                        <td style={styles.td}>{student.fullName}</td>
-                        <td style={styles.td}>{student.address}</td>
-                        <td style={styles.td}>{student.class?.className || "No Class Assigned"}</td>
-                        <td style={styles.td}>{student.parentName}</td>
-                        <td style={styles.td}>{student.academicYear}</td>
-                        <td style={styles.td}>
-                          <button
-                              onClick={() => handleEdit(index)}
-                              style={{
-                                ...styles.actionButton,
-                                backgroundColor: '#3b82f6',
-                                color: 'white',
-                                marginRight: '8px'
-                              }}
-                          >
-                            Edit
-                          </button>
-                          <button
-                              onClick={() => handleOpenConfirmDialog(index)}
-                              style={{
-                                ...styles.actionButton,
-                                backgroundColor: '#ef4444',
-                                color: 'white'
-                              }}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                  ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Dialogs */}
-        <Dialog
-            open={openConfirmDialog}
-            onClose={handleCloseConfirmDialog}
-        >
-          <DialogTitle>Confirm Deletion</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Are you sure you want to delete this student?
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseConfirmDialog} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleConfirmDelete} color="secondary">
-              Confirm
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        <Dialog
-            open={openErrorDialog}
-            onClose={() => setOpenErrorDialog(false)}
-        >
-          <DialogTitle>Error</DialogTitle>
-          <DialogContent>
-            <DialogContentText>{errorMessage}</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenErrorDialog(false)} color="primary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </div>
-  );
+            <Dialog
+                open={openErrorDialog}
+                onClose={() => setOpenErrorDialog(false)}
+            >
+                <DialogTitle>Error</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>{errorMessage}</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenErrorDialog(false)} color="primary">
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </div>);
 }
 
 export default AdminStudentPage;
