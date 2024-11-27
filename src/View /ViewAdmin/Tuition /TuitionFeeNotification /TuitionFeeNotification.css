@@ -1,58 +1,71 @@
-.tuition-fee-notification {
-    max-width: 600px;
-    margin: 50px auto;
-    padding: 20px;
+.create-tuition-fee-notification,
+.get-tuition-fee-notification {
+    width: 45%;
+    max-width: 500px;
     background-color: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 30px;
     font-family: Arial, sans-serif;
 }
 
-.tuition-fee-notification h2 {
+.create-tuition-fee-notification h2,
+.get-tuition-fee-notification h2 {
     text-align: center;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
 }
 
-.tuition-fee-notification form {
+.create-tuition-fee-notification form,
+.get-tuition-fee-notification > div:not(.notification-display) {
     display: flex;
     flex-direction: column;
-    gap: 20px; /* Khoảng cách giữa các thành phần */
+    gap: 20px;
 }
 
-.tuition-fee-notification div {
+.create-tuition-fee-notification div,
+.get-tuition-fee-notification > div:not(.notification-display) > div {
     display: flex;
     flex-direction: column;
 }
 
-.tuition-fee-notification label {
+.create-tuition-fee-notification label,
+.get-tuition-fee-notification label {
     font-weight: bold;
     color: #555;
     margin-bottom: 5px;
 }
 
-.tuition-fee-notification input,
-.tuition-fee-notification select,
-.tuition-fee-notification textarea {
-    width: 100%; /* Căn chỉnh cho các ô input */
+.create-tuition-fee-notification input,
+.create-tuition-fee-notification select,
+.create-tuition-fee-notification textarea,
+.get-tuition-fee-notification input,
+.get-tuition-fee-notification select {
+    width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 14px;
     outline: none;
     transition: border-color 0.3s;
-    box-sizing: border-box; /* Đảm bảo padding không ảnh hưởng đến width */
+    box-sizing: border-box;
 }
 
-.tuition-fee-notification input:focus,
-.tuition-fee-notification select:focus,
-.tuition-fee-notification textarea:focus {
+.create-tuition-fee-notification input:focus,
+.create-tuition-fee-notification select:focus,
+.create-tuition-fee-notification textarea:focus,
+.get-tuition-fee-notification input:focus,
+.get-tuition-fee-notification select:focus {
     border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
 }
 
-.tuition-fee-notification button {
-    width: 100%; /* Đặt nút rộng bằng toàn bộ form */
-    padding: 10px 15px;
+.create-tuition-fee-notification button,
+.get-tuition-fee-notification button {
+    width: 100%;
+    padding: 12px 15px;
     background-color: #007bff;
     color: #fff;
     border: none;
@@ -60,30 +73,72 @@
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
 }
 
-.tuition-fee-notification button:disabled {
+.create-tuition-fee-notification button:disabled,
+.get-tuition-fee-notification button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
 }
 
-.tuition-fee-notification button:hover:not(:disabled) {
+.create-tuition-fee-notification button:hover:not(:disabled),
+.get-tuition-fee-notification button:hover:not(:disabled) {
     background-color: #0056b3;
 }
 
-.tuition-fee-notification p {
+.create-tuition-fee-notification p,
+.get-tuition-fee-notification p {
     text-align: center;
     font-size: 14px;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
-.tuition-fee-notification p[style*="color: red"] {
+.create-tuition-fee-notification p[style*="color: red"],
+.get-tuition-fee-notification p[style*="color: red"] {
     color: #e63946;
     font-weight: bold;
 }
 
-.tuition-fee-notification p[style*="color: green"] {
+.create-tuition-fee-notification p[style*="color: green"],
+.get-tuition-fee-notification p[style*="color: green"] {
     color: #28a745;
     font-weight: bold;
+}
+
+.notification-display {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.notification-display h3 {
+    color: #333;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.notification-display p {
+    font-size: 16px;
+    margin: 10px 0;
+    text-align: left;
+}
+
+.notification-display strong {
+    color: #555;
+    display: inline-block;
+    width: 150px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .create-tuition-fee-notification,
+    .get-tuition-fee-notification {
+        width: 90%;
+        margin: 20px auto;
+    }
 }
