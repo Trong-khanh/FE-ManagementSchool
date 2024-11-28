@@ -1,0 +1,121 @@
+.parent-get-tuition-fee-notification {
+    width: 45%;
+    max-width: 500px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    font-family: Arial, sans-serif;
+    margin: 20px auto;
+}
+
+.parent-get-tuition-fee-notification h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+.parent-get-tuition-fee-notification div {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.parent-get-tuition-fee-notification label {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.parent-get-tuition-fee-notification input,
+.parent-get-tuition-fee-notification select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+}
+
+.parent-get-tuition-fee-notification input:focus,
+.parent-get-tuition-fee-notification select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+.parent-get-tuition-fee-notification button {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.parent-get-tuition-fee-notification button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.parent-get-tuition-fee-notification button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.parent-get-tuition-fee-notification p {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+.parent-get-tuition-fee-notification p[style*="color: red"] {
+    color: #e63946;
+    font-weight: bold;
+}
+
+.parent-get-tuition-fee-notification p[style*="color: green"] {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.notification-display {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f1f1f1;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.notification-display h3 {
+    color: #333;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+}
+
+.notification-display p {
+    font-size: 16px;
+    margin: 10px 0;
+    text-align: left;
+}
+
+.notification-display strong {
+    color: #555;
+    display: inline-block;
+    width: 150px;
+}
+
+@media (max-width: 768px) {
+    .parent-get-tuition-fee-notification {
+        width: 90%;
+        margin: 20px auto;
+    }
+}

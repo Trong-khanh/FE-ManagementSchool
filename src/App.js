@@ -14,6 +14,7 @@ import AdminClass from "./View /ViewAdmin/AdminClass/AdminClass";
 import AdminScore from "./View /ViewAdmin/AdminScore/AdminScore";
 import NextClass from "./View /ViewAdmin/AdminNextClass/NextClass"
 import ViewParent from "./View /ViewParent/ViewParent";
+import ParentPayment from "./View /ViewParent/ParentPayment";
 import ViewStudent from "./View /ViewStudent/ViewStudent";
 import TuitionFeeNotification from "./View /ViewAdmin/Tuition /TuitionFeeNotification /TuitionFeeNotification";
 
@@ -39,7 +40,9 @@ function App() {
         <Route path="/teacher/class" element={<ViewClass />} />
         <Route path="/teacher/score" element={<ViewScore />} />
 
-        <Route path="/parent/viewsocreandpayment" element={< ViewParent/>} />
+        <Route path="/parent/viewscore" element={< ViewParent/>} />
+        <Route path="/parent/payment" element={< ParentPayment/>} />
+
         <Route path="/student/viewscore" element={< ViewStudent/>} />
       </Routes>
     </BrowserRouter>

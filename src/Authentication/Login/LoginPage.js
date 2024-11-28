@@ -52,7 +52,7 @@ const SignInSide = () => {
         } else if (userRole === "Student") {
           navigate("/student/viewscore");
         } else if (userRole === "Parent") {
-          navigate("/parent/viewsocreandpayment");
+          navigate("/parent/viewscore");
         } else {
           setErrorMessage("User role is not recognized.");
         }

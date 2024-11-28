@@ -106,3 +106,25 @@ export const getAverageScores = async (studentName, academicYear) => {
         throw error;  // Rethrow the error to handle it in the calling function
     }
 };
+
+// Function to get tuition fee notification
+export const getTuitionFeeNotification = async (semesterType, academicYear) => {
+    try {
+        const response = await userApi.get('/Parent/GetTuitionFeeNotification', {
+            params: {
+                semesterType: semesterType,
+                academicYear: academicYear,
+            },
+        });
+        console.log('Fetched tuition fee notification:', response.data);
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            console.error('Error response:', error.response.data);
+            throw error.response.data;
+        } else {
+            console.error('Error message:', error.message);
+            throw new Error("Failed to fetch tuition fee notification.");
+        }
+    }
+};

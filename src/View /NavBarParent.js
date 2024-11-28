@@ -1,19 +1,13 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, {useState} from "react";
+import {Link} from "react-router-dom";
 import {
-    AppBar,
-    Toolbar,
-    Typography,
-    IconButton,
-    Menu,
-    MenuItem,
-    InputBase,
+    AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, InputBase,
 } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import { styled, alpha } from "@mui/material/styles";
+import {styled, alpha} from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 
-const Search = styled("div")(({ theme }) => ({
+const Search = styled("div")(({theme}) => ({
     position: "relative",
     borderRadius: theme.shape.borderRadius,
     backgroundColor: alpha(theme.palette.common.white, 0.15),
@@ -24,28 +18,25 @@ const Search = styled("div")(({ theme }) => ({
     marginLeft: 0,
     width: "auto",
     [theme.breakpoints.up("sm")]: {
-        marginLeft: theme.spacing(3),
-        width: "auto",
+        marginLeft: theme.spacing(3), width: "auto",
     },
 }));
 
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: "inherit",
-    "& .MuiInputBase-input": {
+const StyledInputBase = styled(InputBase)(({theme}) => ({
+    color: "inherit", "& .MuiInputBase-input": {
         padding: theme.spacing(1, 1, 1, 0),
         paddingLeft: `calc(1em + ${theme.spacing(4)})`,
         transition: theme.transitions.create("width"),
         width: "100%",
         [theme.breakpoints.up("sm")]: {
-            width: "12ch",
-            "&:focus": {
+            width: "12ch", "&:focus": {
                 width: "20ch",
             },
         },
     },
 }));
 
-function NavBar({ searchQuery, onSearchChange }) {
+function NavBar({searchQuery, onSearchChange}) {
     const [anchorEl, setAnchorEl] = useState(null);
     const isAuthenticated = localStorage.getItem("user");
 
@@ -62,29 +53,28 @@ function NavBar({ searchQuery, onSearchChange }) {
             localStorage.clear();
             window.location.href = "/login";
         } catch (error) {
-            console.error("Đăng xuất không thành công", error);
+            console.error("Cannot Log out", error);
         }
     };
 
-    return (
-        <AppBar
+    return (<AppBar
             position="static"
             sx={{
                 background: "linear-gradient(to left top, #fc6c8f, #ff2ced, #ffb86c)",
             }}
         >
             <Toolbar>
-                <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
                     School Management
                 </Typography>
                 <Search>
                     <StyledInputBase
-                        placeholder="Tìm kiếm…"
-                        inputProps={{ "aria-label": "search" }}
+                        placeholder="Find…"
+                        inputProps={{"aria-label": "search"}}
                         value={searchQuery}
                         onChange={onSearchChange}
                     />
-                    <SearchIcon />
+                    <SearchIcon/>
                 </Search>
                 <IconButton
                     aria-label="more"
@@ -93,7 +83,7 @@ function NavBar({ searchQuery, onSearchChange }) {
                     onClick={handleClick}
                     color="inherit"
                 >
-                    <MoreVertIcon />
+                    <MoreVertIcon/>
                 </IconButton>
                 <Menu
                     id="menu"
@@ -101,25 +91,28 @@ function NavBar({ searchQuery, onSearchChange }) {
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
                 >
-                    {isAuthenticated && (
-                        <Link
-                            to="/parent/viewsocreandpayment"
-                            style={{ textDecoration: "none", color: "inherit" }}
-                        >
-                            <MenuItem onClick={handleClose}>View Scores and Payments </MenuItem>
-                        </Link>
-                    )}
-                    {isAuthenticated ? (
-                        <MenuItem onClick={handleLogout}>Logout</MenuItem>
-                    ) : (
-                        <Link to="/login" style={{ textDecoration: "none", color: "inherit" }}>
+                    {isAuthenticated && (<>
+                            <Link
+                                to="/parent/viewscore"
+                                style={{textDecoration: "none", color: "inherit"}}
+                            >
+                                <MenuItem onClick={handleClose}>View Scores</MenuItem>
+                            </Link>
+                            <Link
+                                to="/parent/payment"
+                                style={{textDecoration: "none", color: "inherit"}}
+                            >
+                                <MenuItem onClick={handleClose}>Payment</MenuItem>
+                            </Link>
+                        </>)}
+                    {isAuthenticated ? (<MenuItem onClick={handleLogout}>Logout</MenuItem>) : (
+                        <Link to="/login" style={{textDecoration: "none", color: "inherit"}}>
                             <MenuItem onClick={handleClose}>Login</MenuItem>
-                        </Link>
-                    )}
+                        </Link>)}
                 </Menu>
+
             </Toolbar>
-        </AppBar>
-    );
+        </AppBar>);
 }
 
 
