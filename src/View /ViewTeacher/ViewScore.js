@@ -79,7 +79,6 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
     setNotificationType(type);
     setNotificationOpen(true);
   };
-  
 
   const handleAddScore = async () => {
     const { semesterId, scoreValue, examType } = scoreData;
@@ -90,12 +89,23 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
     }
 
     const parsedScoreValue = parseFloat(scoreValue);
-    if (
-      isNaN(parsedScoreValue) ||
-      parsedScoreValue < 0 ||
-      parsedScoreValue > 10
-    ) {
+    if (isNaN(parsedScoreValue) || parsedScoreValue < 0 || parsedScoreValue > 10) {
       showNotification("Score must be a number between 0 and 10.", "error");
+      return;
+    }
+
+    // Map the examType string to the corresponding numeric value
+    const examTypeMap = {
+      TestWhenClassBegins: 0,
+      FifteenMinutesTest: 1,
+      FortyFiveMinutesTest: 2,
+      SemesterTest: 3,
+    };
+
+    const examTypeValue = examTypeMap[examType];
+
+    if (examTypeValue === undefined) {
+      showNotification("Invalid Exam Type selected.", "error");
       return;
     }
 
@@ -105,83 +115,79 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
         subjectId: currentStudent.subjectId,
         semesterId,
         scoreValue: parsedScoreValue,
-        examType,
+        examType: examTypeValue,
       };
-        await addScore(scoreEntry);
-        showNotification("Score added successfully", "success");
-        resetScoreData();
-        handleCloseDialog();
-        const classesData = await AssignedClassesStudents();
-        setAssignedClasses(classesData);
-      } catch (err) {
-        const errorMessage = err.response?.data?.message || err.message || "Error when adding score";
-        showNotification(errorMessage, "error");
-      }
+
+      await addScore(scoreEntry);  // Call the backend API
+      showNotification("Score added successfully", "success");
+      resetScoreData();
+      handleCloseDialog();
+      // Update classes after adding score
+      const classesData = await AssignedClassesStudents();
+      setAssignedClasses(classesData);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || "Error when adding score";
+      showNotification(errorMessage, "error");
+    }
   };
 
   const handleViewScores = async (student) => {
     try {
-      // Gọi API để lấy danh sách điểm của học sinh
       const scores = await getScoresForStudent(student.studentId);
-  
-      // Tạo một ánh xạ để chuyển đổi semesterId thành semesterType
       const semesterMap = semesters.reduce((map, semester) => {
         map[semester.semesterId] = semester.semesterType;
         return map;
       }, {});
-  
-      // Lọc và định dạng dữ liệu điểm theo semesterType, scoreValue, và examType
+
       const filteredScores = scores.map((score) => ({
         semesterType: semesterMap[score.semesterId] || "Unknown",
         scoreValue: score.scoreValue,
         examType: score.examType,
       }));
-  
-      // Cập nhật state với danh sách điểm và mở dialog hiển thị điểm
+
       setStudentScores(filteredScores);
       setCurrentStudent(student);
       setOpenScoreDialog(true);
     } catch (error) {
-      // Sử dụng showNotification để hiển thị lỗi qua Dialog
       showNotification(error.message || "An error occurred while fetching scores.", "error");
     }
   };
-  
 
   const handleCalculateAverage = async () => {
     try {
       const scores = await getScoresForStudent(currentStudent.studentId);
       const scoresForSelectedSemester = scores.filter(
-        (score) => score.semesterId === selectedSemester
+          (score) => score.semesterId === selectedSemester
       );
 
+      // Đảm bảo rằng bạn đang kiểm tra các examType bằng số enum
       const missingExamTypes = [];
-      const requiredExamTypes = [
-        "TestWhenClassBegins",
-        "FifteenMinutesTest",
-        "FortyFiveMinutesTest",
-        "SemesterTest",
-      ];
+      const requiredExamTypes = [0, 1, 2, 3];  // Enum values for TestWhenClassBegins, FifteenMinutesTest, FortyFiveMinutesTest, SemesterTest
 
       requiredExamTypes.forEach((type) => {
-        if (
-          !scoresForSelectedSemester.some((score) => score.examType === type)
-        ) {
+        if (!scoresForSelectedSemester.some((score) => score.examType === type)) {
           missingExamTypes.push(type);
         }
       });
 
       if (missingExamTypes.length > 0) {
-        setMissingScoresMessage(
-          `Missing exam type(s): ${missingExamTypes.join(", ")}`
-        );
+        const missingLabels = missingExamTypes.map(type => {
+          switch(type) {
+            case 0: return "Test When Class Begins";
+            case 1: return "Fifteen Minutes Test";
+            case 2: return "Forty Five Minutes Test";
+            case 3: return "Semester Test";
+            default: return "Unknown";
+          }
+        });
+        setMissingScoresMessage(`Missing exam type(s): ${missingLabels.join(", ")}`);
         setCalculatedAverage(null);
         return;
       }
 
       const average = await calculateSemesterAverage(
-        currentStudent.studentId,
-        selectedSemester
+          currentStudent.studentId,
+          selectedSemester
       );
       setCalculatedAverage(average);
       showNotification("Semester average calculated successfully", "success");
@@ -191,6 +197,7 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
     }
   };
 
+
   const handleViewYearAverage = async () => {
     if (!selectedSemesterForView || !currentStudent) {
       showNotification("Please select a semester.", "error");
@@ -198,23 +205,21 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
     }
     try {
       const average = await getSemesterAverageForStudent(
-        currentStudent.studentId,
-        selectedSemesterForView
+          currentStudent.studentId,
+          selectedSemesterForView
       );
-      
-      // Kiểm tra nếu không tìm thấy dữ liệu điểm trung bình
+
       if (!average) {
         showNotification("No average score found for the specified student, subject, and semester.", "error");
         return;
       }
-  
+
       setSemesterAverageScore(average);
       showNotification("Semester average retrieved successfully", "success");
     } catch (error) {
       showNotification(error.message || "An error occurred while fetching the average.", "error");
     }
   };
-  
 
   const handleOpenViewSemesterDialog = (student) => {
     setCurrentStudent(student);
@@ -531,11 +536,11 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
               <div style={{ marginTop: "10px" }}>
                 <p>
                   Semester Average 1:{" "}
-                  {semesterAverageScore.semesterAverage1 || "N/A"}
+                  {semesterAverageScore.semesterAverage1 || "Not yet available"}
                 </p>
                 <p>
                   Semester Average 2:{" "}
-                  {semesterAverageScore.semesterAverage2 || "N/A"}
+                  {semesterAverageScore.semesterAverage2 || "Not yet available"}
                 </p>
                 {semesterAverageScore.annualAverage && (
                   <p>Annual Average: {semesterAverageScore.annualAverage}</p>
