@@ -1,0 +1,80 @@
+/* Global styles for the ViewScore component */
+.view-score-container {
+    padding: 20px;
+}
+
+.view-score-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 24px;
+}
+
+.error-message {
+    color: red;
+}
+
+.success-message {
+    color: green;
+    margin-bottom: 10px;
+}
+
+.missing-scores-message {
+    color: red;
+}
+
+/* Table styles */
+.score-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 25px 0;
+    font-size: 18px;
+    text-align: left;
+    border: 1px solid #dddddd;
+}
+
+.score-table th,
+.score-table td {
+    padding: 12px 15px;
+    border: 1px solid #dddddd;
+}
+
+/* Class selection styles */
+.class-select-container {
+    margin-bottom: 15px;
+}
+
+/* Button styles */
+.action-buttons button {
+    margin-right: 10px;
+    padding: 5px 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .score-table {
+        font-size: 14px;
+    }
+
+    .score-table th,
+    .score-table td {
+        padding: 8px 10px;
+    }
+}
+
+.MuiDialog-paper {
+    width: 400px; /* Optional: set a consistent width */
+}
+
+.MuiDialogContent-root {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Adds consistent spacing between form fields */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+    .MuiDialog-paper {
+        width: 95%; /* Full width on small screens */
+        margin: 10px;
+    }
+}

@@ -7,6 +7,7 @@ import {
   calculateSemesterAverage,
   getSemesterAverageForStudent,
 } from "../../API /TeacherAPI";
+import "./ViewScore.css";
 import Navbar2 from "../Navbar2";
 import {
   Dialog,
@@ -53,9 +54,8 @@ const ViewScore = () => {
   const [calculatedAverage, setCalculatedAverage] = useState(null);
   const [missingScoresMessage, setMissingScoresMessage] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
-const [notificationMessage, setNotificationMessage] = useState("");
-const [notificationType, setNotificationType] = useState(""); // "error" or "success"
-
+  const [notificationMessage, setNotificationMessage] = useState("");
+  const [notificationType, setNotificationType] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -94,7 +94,6 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
       return;
     }
 
-    // Map the examType string to the corresponding numeric value
     const examTypeMap = {
       TestWhenClassBegins: 0,
       FifteenMinutesTest: 1,
@@ -118,11 +117,10 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
         examType: examTypeValue,
       };
 
-      await addScore(scoreEntry);  // Call the backend API
+      await addScore(scoreEntry);
       showNotification("Score added successfully", "success");
       resetScoreData();
       handleCloseDialog();
-      // Update classes after adding score
       const classesData = await AssignedClassesStudents();
       setAssignedClasses(classesData);
     } catch (err) {
@@ -160,9 +158,8 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
           (score) => score.semesterId === selectedSemester
       );
 
-      // Đảm bảo rằng bạn đang kiểm tra các examType bằng số enum
       const missingExamTypes = [];
-      const requiredExamTypes = [0, 1, 2, 3];  // Enum values for TestWhenClassBegins, FifteenMinutesTest, FortyFiveMinutesTest, SemesterTest
+      const requiredExamTypes = [0, 1, 2, 3];
 
       requiredExamTypes.forEach((type) => {
         if (!scoresForSelectedSemester.some((score) => score.examType === type)) {
@@ -196,7 +193,6 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
       setError(error.message);
     }
   };
-
 
   const handleViewYearAverage = async () => {
     if (!selectedSemesterForView || !currentStudent) {
@@ -271,10 +267,10 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
   };
 
   const filteredClasses = selectedClass
-    ? assignedClasses.filter(
-        (classInfo) => classInfo.className === selectedClass
+      ? assignedClasses.filter(
+          (classInfo) => classInfo.className === selectedClass
       )
-    : assignedClasses;
+      : assignedClasses;
 
   const classOptions = [
     ...new Set(assignedClasses.map((classInfo) => classInfo.className)),
@@ -295,287 +291,292 @@ const [notificationType, setNotificationType] = useState(""); // "error" or "suc
   };
 
   return (
-    <div>
-      <Navbar2 />
-      <div style={{ padding: "20px" }}>
-        <h2
-          style={{
-            fontSize: "1.5rem",
-            fontWeight: "bold",
-            marginBottom: "24px",
-          }}
-        >
-          List Students
-        </h2>
-        {error && <div style={{ color: "red" }}>{error}</div>}
-        {successMessage && (
-          <div style={{ color: "green", marginBottom: "10px" }}>
-            {successMessage}
-          </div>
-        )}
-        {missingScoresMessage && (
-          <div style={{ color: "red" }}>{missingScoresMessage}</div>
-        )}
-
-        {classOptions.length > 0 ? (
-          <div>
-            <label htmlFor="class-select">Select Class: </label>
-            <select
-              id="class-select"
-              value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-            >
-              <option value="">All Classes</option>
-              {classOptions.map((className, index) => (
-                <option key={index} value={className}>
-                  {className}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : (
-          <p>No classes available</p>
-        )}
-
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div>
-            <h3>Student's Score</h3>
-            <table style={tableStyles}>
-              <thead>
-                <tr>
-                  <th style={thTdStyles}>Student Full Name</th>
-                  <th style={thTdStyles}>Class Name</th>
-                  <th style={thTdStyles}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredClasses.map((classInfo, index) => (
-                  <tr key={index}>
-                    <td style={thTdStyles}>{classInfo.studentFullName}</td>
-                    <td style={thTdStyles}>{classInfo.className}</td>
-                    <td style={thTdStyles}>
-                      <button onClick={() => handleOpenDialog(classInfo)}>
-                        Add Score
-                      </button>
-                      <button onClick={() => handleViewScores(classInfo)}>
-                        View Scores
-                      </button>
-                      <button
-                        onClick={() => handleOpenCalculateDialog(classInfo)}
-                      >
-                        Calculate Average
-                      </button>
-                      <button
-                        onClick={() => handleOpenViewSemesterDialog(classInfo)}
-                      >
-                        View Semester Average
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* Dialog for Adding Scores */}
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogTitle>Add Score</DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Score"
-              type="number"
-              value={scoreData.scoreValue}
-              onChange={(e) =>
-                setScoreData({ ...scoreData, scoreValue: e.target.value })
-              }
-              fullWidth
-              error={
-                scoreData.scoreValue !== "" &&
-                (scoreData.scoreValue < 0 || scoreData.scoreValue > 10)
-              }
-              helperText="Score must be between 0 and 10"
-            />
-            <TextField
-              label="Exam Type"
-              select
-              value={scoreData.examType}
-              onChange={(e) =>
-                setScoreData({ ...scoreData, examType: e.target.value })
-              }
-              fullWidth
-            >
-              {examTypes.map((type) => (
-                <MenuItem key={type.value} value={type.value}>
-                  {type.label}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="Semester Type"
-              select
-              value={scoreData.semesterId}
-              onChange={(e) =>
-                setScoreData({ ...scoreData, semesterId: e.target.value })
-              }
-              fullWidth
-            >
-              {semesters.map((semester) => (
-                <MenuItem key={semester.semesterId} value={semester.semesterId}>
-                  {semester.semesterType}
-                </MenuItem>
-              ))}
-            </TextField>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog} color="secondary">
-              Cancel
-            </Button>
-            <Button onClick={handleAddScore} color="primary">
-              Add/Edit Score
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Dialog for Viewing Scores */}
-        <Dialog open={openScoreDialog} onClose={handleCloseScoreDialog}>
-          <DialogTitle>Student Scores</DialogTitle>
-          <DialogContent>
-            {studentScores.length > 0 ? (
-              <Table style={tableStyles}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell style={thTdStyles}>Semester Type</TableCell>
-                    <TableCell style={thTdStyles}>Score</TableCell>
-                    <TableCell style={thTdStyles}>Exam Type</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {studentScores.map((score, index) => (
-                    <TableRow key={index}>
-                      <TableCell style={thTdStyles}>
-                        {score.semesterType}
-                      </TableCell>
-                      <TableCell style={thTdStyles}>
-                        {score.scoreValue}
-                      </TableCell>
-                      <TableCell style={thTdStyles}>{score.examType}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p>No scores available for this student.</p>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseScoreDialog} color="primary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Dialog for Calculating Average */}
-        <Dialog open={openCalculateDialog} onClose={handleCloseCalculateDialog}>
-          <DialogTitle>Calculate Semester Average</DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Select Semester"
-              select
-              fullWidth
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
-            >
-              {semesters.map((semester) => (
-                <MenuItem key={semester.semesterId} value={semester.semesterId}>
-                  {semester.semesterType}
-                </MenuItem>
-              ))}
-            </TextField>
-            {calculatedAverage !== null && (
-              <p>Calculated Average: {calculatedAverage}</p>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseCalculateDialog} color="secondary">
-              Close
-            </Button>
-            <Button
-              onClick={handleCalculateAverage}
-              color="primary"
-              disabled={!selectedSemester}
-            >
-              Calculate
-            </Button>
-          </DialogActions>
-        </Dialog>
-
-        {/* Dialog for Viewing Semester Average */}
-        <Dialog
-          open={openViewSemesterDialog}
-          onClose={handleCloseViewSemesterDialog}
-        >
-          <DialogTitle>View Semester Average</DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Select Semester"
-              select
-              fullWidth
-              value={selectedSemesterForView}
-              onChange={(e) => setSelectedSemesterForView(e.target.value)}
-            >
-              {semesters.map((semester) => (
-                <MenuItem key={semester.semesterId} value={semester.semesterId}>
-                  {semester.semesterType}
-                </MenuItem>
-              ))}
-            </TextField>
-            {semesterAverageScore && (
-              <div style={{ marginTop: "10px" }}>
-                <p>
-                  Semester Average 1:{" "}
-                  {semesterAverageScore.semesterAverage1 || "Not yet available"}
-                </p>
-                <p>
-                  Semester Average 2:{" "}
-                  {semesterAverageScore.semesterAverage2 || "Not yet available"}
-                </p>
-                {semesterAverageScore.annualAverage && (
-                  <p>Annual Average: {semesterAverageScore.annualAverage}</p>
-                )}
+      <div>
+        <Navbar2 />
+        <div style={{ padding: "20px" }}>
+          <h2
+              style={{
+                fontSize: "1.5rem",
+                fontWeight: "bold",
+                marginBottom: "24px",
+              }}
+          >
+            List Students
+          </h2>
+          {error && <div style={{ color: "red" }}>{error}</div>}
+          {successMessage && (
+              <div style={{ color: "green", marginBottom: "10px" }}>
+                {successMessage}
               </div>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseViewSemesterDialog} color="secondary">
-              Close
-            </Button>
-            <Button
-              onClick={handleViewYearAverage}
-              color="primary"
-              disabled={!selectedSemesterForView}
-            >
-              View Average
-            </Button>
-          </DialogActions>
-        </Dialog>
+          )}
+          {missingScoresMessage && (
+              <div style={{ color: "red" }}>{missingScoresMessage}</div>
+          )}
 
-        <Dialog open={notificationOpen} onClose={() => setNotificationOpen(false)}>
-  <DialogTitle>{notificationType === "error" ? "Error" : "Success"}</DialogTitle>
-  <DialogContent>
-    <p>{notificationMessage}</p>
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setNotificationOpen(false)} color="primary">
-      OK
-    </Button>
-  </DialogActions>
-</Dialog>
+          {classOptions.length > 0 ? (
+              <div>
+                <label htmlFor="class-select">Select Class: </label>
+                <select
+                    id="class-select"
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                >
+                  <option value="">All Classes</option>
+                  {classOptions.map((className, index) => (
+                      <option key={index} value={className}>
+                        {className}
+                      </option>
+                  ))}
+                </select>
+              </div>
+          ) : (
+              <p>No classes available</p>
+          )}
 
+          {loading ? (
+              <p>Loading...</p>
+          ) : (
+              <div>
+                <h3>Student's Score</h3>
+                <table style={tableStyles}>
+                  <thead>
+                  <tr>
+                    <th style={thTdStyles}>Student Full Name</th>
+                    <th style={thTdStyles}>Class Name</th>
+                    <th style={thTdStyles}>Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  {filteredClasses.map((classInfo, index) => (
+                      <tr key={index}>
+                        <td style={thTdStyles}>{classInfo.studentFullName}</td>
+                        <td style={thTdStyles}>{classInfo.className}</td>
+                        <td style={thTdStyles}>
+                          <button onClick={() => handleOpenDialog(classInfo)}>
+                            Add Score
+                          </button>
+                          <button onClick={() => handleViewScores(classInfo)}>
+                            View Scores
+                          </button>
+                          <button
+                              onClick={() => handleOpenCalculateDialog(classInfo)}
+                          >
+                            Calculate Average
+                          </button>
+                          <button
+                              onClick={() => handleOpenViewSemesterDialog(classInfo)}
+                          >
+                            View Semester Average
+                          </button>
+                        </td>
+                      </tr>
+                  ))}
+                  </tbody>
+                </table>
+              </div>
+          )}
+
+          {/* Dialog for Adding Scores */}
+          <Dialog open={openDialog} onClose={handleCloseDialog}>
+            <DialogTitle>Add Score</DialogTitle>
+            <DialogContent>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <TextField
+                    label="Score"
+                    type="number"
+                    value={scoreData.scoreValue}
+                    onChange={(e) =>
+                        setScoreData({ ...scoreData, scoreValue: e.target.value })
+                    }
+                    fullWidth
+                    error={
+                        scoreData.scoreValue !== "" &&
+                        (scoreData.scoreValue < 0 || scoreData.scoreValue > 10)
+                    }
+                    helperText="Score must be between 0 and 10"
+                />
+                <TextField
+                    label="Exam Type"
+                    select
+                    value={scoreData.examType}
+                    onChange={(e) =>
+                        setScoreData({ ...scoreData, examType: e.target.value })
+                    }
+                    fullWidth
+                >
+                  {examTypes.map((type) => (
+                      <MenuItem key={type.value} value={type.value}>
+                        {type.label}
+                      </MenuItem>
+                  ))}
+                </TextField>
+
+                <TextField
+                    label="Select Semester"
+                    select
+                    fullWidth
+                    value={selectedSemester}
+                    onChange={(e) => setSelectedSemester(e.target.value)}
+                >
+                  {semesters.map((semester) => (
+                      <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                        {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
+                      </MenuItem>
+                  ))}
+                </TextField>
+              </div>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog} color="secondary">
+                Cancel
+              </Button>
+              <Button onClick={handleAddScore} color="primary">
+                Add/Edit Score
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Dialog for Viewing Scores */}
+          <Dialog open={openScoreDialog} onClose={handleCloseScoreDialog}>
+            <DialogTitle>Student Scores</DialogTitle>
+            <DialogContent>
+              {studentScores.length > 0 ? (
+                  <Table style={tableStyles}>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell style={thTdStyles}>Semester Type</TableCell>
+                        <TableCell style={thTdStyles}>Score</TableCell>
+                        <TableCell style={thTdStyles}>Exam Type</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {studentScores.map((score, index) => (
+                          <TableRow key={index}>
+                            <TableCell style={thTdStyles}>
+                              {score.semesterType}
+                            </TableCell>
+                            <TableCell style={thTdStyles}>
+                              {score.scoreValue}
+                            </TableCell>
+                            <TableCell style={thTdStyles}>{score.examType}</TableCell>
+                          </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+              ) : (
+                  <p>No scores available for this student.</p>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseScoreDialog} color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Dialog for Calculating Average */}
+          <Dialog open={openCalculateDialog} onClose={handleCloseCalculateDialog}>
+            <DialogTitle>Calculate Semester Average</DialogTitle>
+            <DialogContent>
+              <TextField
+                  label="Select Semester"
+                  select
+                  fullWidth
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+              >
+                {semesters.map((semester) => (
+                    <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                      {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
+                    </MenuItem>
+                ))}
+              </TextField>
+              {calculatedAverage !== null && (
+                  <p>Calculated Average: {calculatedAverage}</p>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseCalculateDialog} color="secondary">
+                Close
+              </Button>
+              <Button
+                  onClick={handleCalculateAverage}
+                  color="primary"
+                  disabled={!selectedSemester}
+              >
+                Calculate
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Dialog for Viewing Semester Average */}
+          <Dialog
+              open={openViewSemesterDialog}
+              onClose={handleCloseViewSemesterDialog}
+          >
+            <DialogTitle>View Semester Average</DialogTitle>
+            <DialogContent>
+              <TextField
+                  label="Select Semester"
+                  select
+                  fullWidth
+                  value={selectedSemesterForView}
+                  onChange={(e) => setSelectedSemesterForView(e.target.value)}
+              >
+                {semesters.map((semester) => (
+                    <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                      {/* Modify this line to show "Semester 1" or "Semester 2" */}
+                      {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
+                    </MenuItem>
+                ))}
+              </TextField>
+              {semesterAverageScore && (
+                  <div style={{ marginTop: "10px" }}>
+                    <p>
+                      {/* Update this line to display the semester averages with correct labels */}
+                      Semester Average 1:{" "}
+                      {semesterAverageScore.semesterAverage1 || "Not yet available"}
+                    </p>
+                    <p>
+                      Semester Average 2:{" "}
+                      {semesterAverageScore.semesterAverage2 || "Not yet available"}
+                    </p>
+                    {semesterAverageScore.annualAverage && (
+                        <p>Annual Average: {semesterAverageScore.annualAverage}</p>
+                    )}
+                  </div>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseViewSemesterDialog} color="secondary">
+                Close
+              </Button>
+              <Button
+                  onClick={handleViewYearAverage}
+                  color="primary"
+                  disabled={!selectedSemesterForView}
+              >
+                View Average
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+
+          <Dialog open={notificationOpen} onClose={() => setNotificationOpen(false)}>
+            <DialogTitle>{notificationType === "error" ? "Error" : "Success"}</DialogTitle>
+
+            <DialogContent>
+              <p>{notificationMessage}</p>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setNotificationOpen(false)} color="primary">
+                OK
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+        </div>
       </div>
-    </div>
   );
 };
 
