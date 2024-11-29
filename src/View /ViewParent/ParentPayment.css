@@ -113,6 +113,28 @@
     width: 150px;
 }
 
+.payment-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pay-with-momo-button {
+    padding: 12px 20px;
+    background-color: #ff4b5c; /* Màu đặc trưng của MoMo */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.pay-with-momo-button:hover {
+    background-color: #e43d4b;
+}
+
 @media (max-width: 768px) {
     .parent-get-tuition-fee-notification {
         width: 90%;

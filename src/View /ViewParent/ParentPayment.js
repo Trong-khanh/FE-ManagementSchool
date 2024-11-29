@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import {getTuitionFeeNotification} from "../../API /ParentAPI";
+import { getTuitionFeeNotification,createPayment } from "../../API /ParentAPI";
 import "./ParentPayment.css";
-import NavBarParent from "../NavBarParent"; // Import NavBarParent
+import NavBarParent from "../NavBarParent";
 
 const GetParentTuitionFeeNotification = () => {
     const [fetchSemesterType, setFetchSemesterType] = useState("Semester1");
@@ -10,12 +10,15 @@ const GetParentTuitionFeeNotification = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [noDataMessage, setNoDataMessage] = useState("");
+    const [paymentInitiated, setPaymentInitiated] = useState(false); // Trạng thái thanh toán
 
+    // Hàm lấy thông báo học phí
     const handleGetNotification = async () => {
         setLoading(true);
-        setError(""); // Reset error mỗi khi gửi lại yêu cầu
-        setNoDataMessage(""); // Reset thông báo không có dữ liệu
-        setTuitionFeeNotification(null); // Reset dữ liệu thông báo
+        setError("");
+        setNoDataMessage("");
+        setTuitionFeeNotification(null);
+        setPaymentInitiated(false);
 
         try {
             // Gọi API lấy dữ liệu thông báo học phí
@@ -27,6 +30,7 @@ const GetParentTuitionFeeNotification = () => {
             } else {
                 // Nếu có dữ liệu, lưu vào state
                 setTuitionFeeNotification(data);
+                setPaymentInitiated(true); // Hiển thị nút thanh toán sau khi nhận được dữ liệu
             }
         } catch (err) {
             // Nếu có lỗi trong quá trình gọi API, set lỗi vào state
@@ -42,6 +46,21 @@ const GetParentTuitionFeeNotification = () => {
         if (semester === "Semester1") return "Semester 1";
         if (semester === "Semester2") return "Semester 2";
         return semester;
+    };
+
+    // Hàm xử lý thanh toán với MoMo
+    const handlePayWithMoMo = async () => {
+        try {
+            // Gọi API thanh toán học phí với MoMo
+            const response = await createPayment(tuitionFeeNotification);
+
+            // Xử lý kết quả sau khi thanh toán thành công
+            if (response.status === 200) {
+                alert("Thanh toán học phí thành công!");
+            }
+        } catch (error) {
+            alert("Lỗi khi thanh toán: " + error.message);
+        }
     };
 
     return (
@@ -84,15 +103,23 @@ const GetParentTuitionFeeNotification = () => {
 
             {noDataMessage && <p style={{ color: "orange" }}>{noDataMessage}</p>}
             {error && <p style={{ color: "red" }}>Error: {error}</p>}
+
+            {/* Hiển thị nút Pay with MoMo nếu có dữ liệu thông báo học phí */}
+            {paymentInitiated && !loading && tuitionFeeNotification && (
+                <div className="payment-button-container">
+                    <button className="pay-with-momo-button" onClick={handlePayWithMoMo}>
+                        Pay with MoMo
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
 
-
 const ParentPayment = () => {
     return (
         <div>
-            <NavBarParent /> {/* Include the NavBarParent component */}
+            <NavBarParent />
             <GetParentTuitionFeeNotification />
         </div>
     );

@@ -128,3 +128,25 @@ export const getTuitionFeeNotification = async (semesterType, academicYear) => {
         }
     }
 };
+
+// React code example
+export const createPayment = async (paymentRequest) => {
+    const response = await fetch("/Parent/CreatePayment", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(paymentRequest),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+        // Điều hướng người dùng đến trang thanh toán MoMo
+        window.location.href = data.payUrl;
+    } else {
+        // Hiển thị thông báo lỗi
+        alert(data.message);
+    }
+};
+

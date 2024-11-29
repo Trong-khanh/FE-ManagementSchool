@@ -68,9 +68,8 @@ export default function HomePage() {
           <Button color="inherit" component={Link} to="/login" sx={{ ml: 2.5 }}>LogIn</Button>
         </Toolbar>
       </AppBar>
-      {/* Phần nội dung chính của trang web */}
       <main>
-        {/* Thêm nội dung tại đây */}
+
       </main>
     </div>
   );

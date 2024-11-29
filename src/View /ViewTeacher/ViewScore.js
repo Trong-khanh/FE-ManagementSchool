@@ -79,9 +79,12 @@ const ViewScore = () => {
     setNotificationType(type);
     setNotificationOpen(true);
   };
-
   const handleAddScore = async () => {
-    const { semesterId, scoreValue, examType } = scoreData;
+    // Use the selectedSemester instead of scoreData.semesterId
+    const { scoreValue, examType } = scoreData;
+
+    // Use selectedSemester for semesterId
+    const semesterId = selectedSemester;
 
     if (!semesterId || !scoreValue || !examType) {
       showNotification("All fields (Semester, Score, and Exam Type) are required.", "error");
@@ -102,7 +105,6 @@ const ViewScore = () => {
     };
 
     const examTypeValue = examTypeMap[examType];
-
     if (examTypeValue === undefined) {
       showNotification("Invalid Exam Type selected.", "error");
       return;
@@ -112,10 +114,12 @@ const ViewScore = () => {
       const scoreEntry = {
         studentId: currentStudent.studentId,
         subjectId: currentStudent.subjectId,
-        semesterId,
+        semesterId: parseInt(semesterId),
         scoreValue: parsedScoreValue,
         examType: examTypeValue,
       };
+
+      console.log("Score Entry being sent to backend:", scoreEntry);
 
       await addScore(scoreEntry);
       showNotification("Score added successfully", "success");
@@ -131,16 +135,31 @@ const ViewScore = () => {
 
   const handleViewScores = async (student) => {
     try {
-      const scores = await getScoresForStudent(student.studentId);
+      // Get the selected subjectId and semesterId from the student's data
+      const subjectId = student.subjectId;  // Assuming this data is available
+      const semesterId = selectedSemester || null;  // Use selectedSemester if set, otherwise null
+
+      // Make the API call with query parameters
+      const scores = await getScoresForStudent(student.studentId, subjectId, semesterId);
+
+      // Map backend response to frontend format
       const semesterMap = semesters.reduce((map, semester) => {
         map[semester.semesterId] = semester.semesterType;
         return map;
       }, {});
 
+      // Map exam types
+      const examTypeNames = {
+        0: "Test When Class Begins",
+        1: "Fifteen Minutes Test",
+        2: "Forty Five Minutes Test",
+        3: "Semester Test"
+      };
+
       const filteredScores = scores.map((score) => ({
-        semesterType: semesterMap[score.semesterId] || "Unknown",
+        semesterType: semesterMap[score.semesterId] === "Semester1" ? "Semester 1" : "Semester 2",
         scoreValue: score.scoreValue,
-        examType: score.examType,
+        examType: examTypeNames[score.examType] || "Unknown Exam Type",
       }));
 
       setStudentScores(filteredScores);
@@ -150,6 +169,7 @@ const ViewScore = () => {
       showNotification(error.message || "An error occurred while fetching scores.", "error");
     }
   };
+
 
   const handleCalculateAverage = async () => {
     try {
@@ -217,12 +237,25 @@ const ViewScore = () => {
     }
   };
 
-  const handleOpenViewSemesterDialog = (student) => {
-    setCurrentStudent(student);
-    setSemesterAverageScore(null);
-    setOpenViewSemesterDialog(true);
-  };
+  const handleOpenViewSemesterDialog = async (student) => {
+    try {
+      // Immediately fetch semester average when dialog opens
+      const average = await getSemesterAverageForStudent(
+          student.studentId,
+          // Default to first semester if multiple exist
+          semesters.length > 0 ? semesters[0].semesterId : null
+      );
 
+      setCurrentStudent(student);
+      setSemesterAverageScore(average);
+      setOpenViewSemesterDialog(true);
+    } catch (error) {
+      showNotification(
+          error.message || "An error occurred while fetching semester average.",
+          "error"
+      );
+    }
+  };
   const handleCloseViewSemesterDialog = () => {
     setOpenViewSemesterDialog(false);
     setSelectedSemesterForView("");
@@ -241,6 +274,7 @@ const ViewScore = () => {
   const handleOpenDialog = (student) => {
     setCurrentStudent(student);
     setOpenDialog(true);
+    setSelectedSemester(semesters.length > 0 ? semesters[0].semesterId : "");
     resetScoreData();
   };
 
@@ -399,9 +433,9 @@ const ViewScore = () => {
                     label="Exam Type"
                     select
                     value={scoreData.examType}
-                    onChange={(e) =>
-                        setScoreData({ ...scoreData, examType: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setScoreData({ ...scoreData, examType: e.target.value });
+                    }}
                     fullWidth
                 >
                   {examTypes.map((type) => (
@@ -410,6 +444,7 @@ const ViewScore = () => {
                       </MenuItem>
                   ))}
                 </TextField>
+
 
                 <TextField
                     label="Select Semester"
@@ -491,9 +526,6 @@ const ViewScore = () => {
                     </MenuItem>
                 ))}
               </TextField>
-              {calculatedAverage !== null && (
-                  <p>Calculated Average: {calculatedAverage}</p>
-              )}
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseCalculateDialog} color="secondary">
@@ -516,24 +548,9 @@ const ViewScore = () => {
           >
             <DialogTitle>View Semester Average</DialogTitle>
             <DialogContent>
-              <TextField
-                  label="Select Semester"
-                  select
-                  fullWidth
-                  value={selectedSemesterForView}
-                  onChange={(e) => setSelectedSemesterForView(e.target.value)}
-              >
-                {semesters.map((semester) => (
-                    <MenuItem key={semester.semesterId} value={semester.semesterId}>
-                      {/* Modify this line to show "Semester 1" or "Semester 2" */}
-                      {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
-                    </MenuItem>
-                ))}
-              </TextField>
-              {semesterAverageScore && (
-                  <div style={{ marginTop: "10px" }}>
+              {semesterAverageScore ? (
+                  <div>
                     <p>
-                      {/* Update this line to display the semester averages with correct labels */}
                       Semester Average 1:{" "}
                       {semesterAverageScore.semesterAverage1 || "Not yet available"}
                     </p>
@@ -545,6 +562,8 @@ const ViewScore = () => {
                         <p>Annual Average: {semesterAverageScore.annualAverage}</p>
                     )}
                   </div>
+              ) : (
+                  <p>Loading semester averages...</p>
               )}
             </DialogContent>
             <DialogActions>
@@ -556,7 +575,6 @@ const ViewScore = () => {
                   color="primary"
                   disabled={!selectedSemesterForView}
               >
-                View Average
               </Button>
             </DialogActions>
           </Dialog>

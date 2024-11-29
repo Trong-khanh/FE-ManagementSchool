@@ -78,21 +78,25 @@ const AssignedClassesStudents = async (teacherEmail) => {
     }
 };
 
-const addScore = async (scoreData, teacherEmail) => {
+const addScore = async (scoreData) => {
     try {
-        console.log("Adding score with data:", scoreData, "for teacher:", teacherEmail);
+        console.log("Adding score with data:", scoreData);
         const response = await userApi.post("/Teacher/AddScore", {
-            ...scoreData, teacherEmail,
+            studentId: scoreData.studentId,
+            subjectId: scoreData.subjectId,
+            semesterId: scoreData.semesterId,
+            examType: scoreData.examType,
+            scoreValue: scoreData.scoreValue
         });
         console.log("Score added response:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Error adding score:", error.response ? error.response.data : error.message); // In ra chi tiết lỗi nếu có
+        console.error("Error adding score:", error.response ? error.response.data : error.message);
         throw new Error(error.response ? error.response.data : "Error adding score");
     }
 };
-// Function to get scores for a specific student
 
+// Function to get scores for a specific student
 const getScoresForStudent = async (studentId, subjectId = null, semesterId = null) => {
     try {
         const response = await userApi.get(`/Teacher/ GetScoreStudent/${studentId}`, {
