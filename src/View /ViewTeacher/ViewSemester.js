@@ -7,7 +7,6 @@ const ViewSemester = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Handler to fetch the data
   const fetchSemesters = async () => {
     try {
       const data = await ViewAllSemesters();
@@ -21,50 +20,52 @@ const ViewSemester = () => {
     }
   };
 
-  // Call the handler on component mount
   useEffect(() => {
     fetchSemesters();
   }, []);
 
-  // If loading, show a loading message
+  // Function to format semester type
+  const formatSemesterType = (semesterType) => {
+    if (semesterType === "Semester1") return "Semester 1";
+    if (semesterType === "Semester2") return "Semester 2";
+    return semesterType;
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  // If there's an error, show the error message
   if (error) {
     return <div>{error}</div>;
   }
 
-  // Inline CSS styles
   const containerStyles = {
     margin: "20px",
   };
 
   const tableStyles = {
     width: "100%",
-    borderCollapse: "collapse", 
+    borderCollapse: "collapse",
     margin: "25px 0",
     fontSize: "18px",
     textAlign: "left",
     borderRadius: "8px",
     overflow: "hidden",
   };
-  
+
   const thTdStyles = {
     padding: "12px 15px",
     color: "#000000",
     border: "1px solid #dddddd",
   };
-  
+
   const theadStyles = {
     backgroundColor: "#ffffff",
     color: "#000000",
     textAlign: "left",
     fontWeight: "bold",
-    border: "1px solid #dddddd", 
+    border: "1px solid #dddddd",
   };
-  
 
   const evenRowStyles = {
     backgroundColor: "#f3f3f3",
@@ -76,56 +77,55 @@ const ViewSemester = () => {
   };
 
   return (
-    <div>
-      <Navbar2 />
-  
-      <h2>Semesters</h2>
-      {semesters.length > 0 ? (
-        <div style={containerStyles}>
-          <table style={tableStyles}>
-            <thead>
-              <tr style={theadStyles}>
-                <th style={thTdStyles}>Semester ID</th>
-                <th style={thTdStyles}>Name</th>
-                <th style={thTdStyles}>Start Date</th>
-                <th style={thTdStyles}>End Date</th>
-                <th style={thTdStyles}>Academic Year</th>
-              </tr>
-            </thead>
-            <tbody>
-              {semesters.map((semester, index) => (
-                <tr
-                  key={semester.semesterId}
-                  style={index % 2 === 0 ? evenRowStyles : {}}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      hoverStyles.backgroundColor)
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      index % 2 === 0 ? evenRowStyles.backgroundColor : "")
-                  }
-                >
-                  <td style={thTdStyles}>{semester.semesterId}</td>
-                  <td style={thTdStyles}>{semester.semesterType}</td>
-                  <td style={thTdStyles}>
-                    {new Date(semester.startDate).toLocaleDateString()}
-                  </td>
-                  <td style={thTdStyles}>
-                    {new Date(semester.endDate).toLocaleDateString()}
-                  </td>
-                  <td style={thTdStyles}>{semester.academicYear}</td>
+      <div>
+        <Navbar2 />
+
+        <h2>Semesters</h2>
+        {semesters.length > 0 ? (
+            <div style={containerStyles}>
+              <table style={tableStyles}>
+                <thead>
+                <tr style={theadStyles}>
+                  <th style={thTdStyles}>Name</th>
+                  <th style={thTdStyles}>Start Date</th>
+                  <th style={thTdStyles}>End Date</th>
+                  <th style={thTdStyles}>Academic Year</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p>No semesters found.</p>
-      )}
-    </div>
+                </thead>
+                <tbody>
+                {semesters.map((semester, index) => (
+                    <tr
+                        key={semester.semesterId}
+                        style={index % 2 === 0 ? evenRowStyles : {}}
+                        onMouseOver={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                                hoverStyles.backgroundColor)
+                        }
+                        onMouseOut={(e) =>
+                            (e.currentTarget.style.backgroundColor =
+                                index % 2 === 0 ? evenRowStyles.backgroundColor : "")
+                        }
+                    >
+                      <td style={thTdStyles}>
+                        {formatSemesterType(semester.semesterType)}
+                      </td>
+                      <td style={thTdStyles}>
+                        {new Date(semester.startDate).toLocaleDateString('en-GB')}
+                      </td>
+                      <td style={thTdStyles}>
+                        {new Date(semester.endDate).toLocaleDateString('en-GB')}
+                      </td>
+                      <td style={thTdStyles}>{semester.academicYear}</td>
+                    </tr>
+                ))}
+                </tbody>
+              </table>
+            </div>
+        ) : (
+            <p>No semesters found.</p>
+        )}
+      </div>
   );
-  
 };
 
 export default ViewSemester;

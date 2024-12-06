@@ -78,7 +78,6 @@ const login = async (credentials) => {
 
 const register = async (userData, role) => {
     try {
-        // Correct API endpoint
         const response = await authApi.post('/Authenticate/Regsiter', userData, {
             params: { role }
         });

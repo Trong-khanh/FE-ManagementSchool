@@ -143,7 +143,7 @@ const AdminSemesterPage = () => {
 
     return (<div style={styles.container}>
         <NavBar searchQuery={searchQuery} onSearchChange={handleSearchChange}/>
-        <h1 style={{textAlign: "center"}}>Class Management</h1>
+        <h1 style={{textAlign: "center"}}>Semester Management</h1>
         <form onSubmit={handleSubmit} style={styles.formContainer}>
             <div style={styles.inputContainer}>
                 <label>Semester Type:</label>

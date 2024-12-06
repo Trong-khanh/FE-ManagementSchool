@@ -1,10 +1,8 @@
 import React, {useState} from "react";
 import {Link} from "react-router-dom";
-import {
-    AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, InputBase,
-} from "@mui/material";
+import {AppBar, IconButton, InputBase, Menu, MenuItem, Toolbar, Typography,} from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import {styled, alpha} from "@mui/material/styles";
+import {alpha, styled} from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 
 const Search = styled("div")(({theme}) => ({
@@ -58,61 +56,61 @@ function NavBar({searchQuery, onSearchChange}) {
     };
 
     return (<AppBar
-            position="static"
-            sx={{
-                background: "linear-gradient(to left top, #fc6c8f, #ff2ced, #ffb86c)",
-            }}
-        >
-            <Toolbar>
-                <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
-                    School Management
-                </Typography>
-                <Search>
-                    <StyledInputBase
-                        placeholder="Find…"
-                        inputProps={{"aria-label": "search"}}
-                        value={searchQuery}
-                        onChange={onSearchChange}
-                    />
-                    <SearchIcon/>
-                </Search>
-                <IconButton
-                    aria-label="more"
-                    aria-controls="menu"
-                    aria-haspopup="true"
-                    onClick={handleClick}
-                    color="inherit"
-                >
-                    <MoreVertIcon/>
-                </IconButton>
-                <Menu
-                    id="menu"
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleClose}
-                >
-                    {isAuthenticated && (<>
-                            <Link
-                                to="/parent/viewscore"
-                                style={{textDecoration: "none", color: "inherit"}}
-                            >
-                                <MenuItem onClick={handleClose}>View Scores</MenuItem>
-                            </Link>
-                            <Link
-                                to="/parent/payment"
-                                style={{textDecoration: "none", color: "inherit"}}
-                            >
-                                <MenuItem onClick={handleClose}>Payment</MenuItem>
-                            </Link>
-                        </>)}
-                    {isAuthenticated ? (<MenuItem onClick={handleLogout}>Logout</MenuItem>) : (
-                        <Link to="/login" style={{textDecoration: "none", color: "inherit"}}>
-                            <MenuItem onClick={handleClose}>Login</MenuItem>
-                        </Link>)}
-                </Menu>
+        position="static"
+        sx={{
+            backgroundColor: "#0066FF",
+        }}
+    >
+        <Toolbar>
+            <Typography variant="h6" noWrap component="div" sx={{flexGrow: 1}}>
+                School Management
+            </Typography>
+            <Search>
+                <StyledInputBase
+                    placeholder="Find…"
+                    inputProps={{"aria-label": "search"}}
+                    value={searchQuery}
+                    onChange={onSearchChange}
+                />
+                <SearchIcon/>
+            </Search>
+            <IconButton
+                aria-label="more"
+                aria-controls="menu"
+                aria-haspopup="true"
+                onClick={handleClick}
+                color="inherit"
+            >
+                <MoreVertIcon/>
+            </IconButton>
+            <Menu
+                id="menu"
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+            >
+                {isAuthenticated && (<>
+                    <Link
+                        to="/parent/viewscore"
+                        style={{textDecoration: "none", color: "inherit"}}
+                    >
+                        <MenuItem onClick={handleClose}>View Scores</MenuItem>
+                    </Link>
+                    <Link
+                        to="/parent/payment"
+                        style={{textDecoration: "none", color: "inherit"}}
+                    >
+                        <MenuItem onClick={handleClose}>Payment</MenuItem>
+                    </Link>
+                </>)}
+                {isAuthenticated ? (<MenuItem onClick={handleLogout}>Logout</MenuItem>) : (
+                    <Link to="/login" style={{textDecoration: "none", color: "inherit"}}>
+                        <MenuItem onClick={handleClose}>Login</MenuItem>
+                    </Link>)}
+            </Menu>
 
-            </Toolbar>
-        </AppBar>);
+        </Toolbar>
+    </AppBar>);
 }
 
 

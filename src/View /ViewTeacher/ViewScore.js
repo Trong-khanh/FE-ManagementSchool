@@ -136,8 +136,8 @@ const ViewScore = () => {
   const handleViewScores = async (student) => {
     try {
       // Get the selected subjectId and semesterId from the student's data
-      const subjectId = student.subjectId;  // Assuming this data is available
-      const semesterId = selectedSemester || null;  // Use selectedSemester if set, otherwise null
+      const subjectId = student.subjectId;
+      const semesterId = selectedSemester || null;
 
       // Make the API call with query parameters
       const scores = await getScoresForStudent(student.studentId, subjectId, semesterId);
@@ -169,7 +169,6 @@ const ViewScore = () => {
       showNotification(error.message || "An error occurred while fetching scores.", "error");
     }
   };
-
 
   const handleCalculateAverage = async () => {
     try {

@@ -70,7 +70,7 @@ function NavBar({ searchQuery, onSearchChange }) {
         <AppBar
             position="static"
             sx={{
-                background: "linear-gradient(to left top, #fc6c8f, #ff2ced, #ffb86c)",
+                backgroundColor: "#0066FF",
             }}
         >
             <Toolbar>

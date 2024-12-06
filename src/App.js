@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./HomePage/HomePage";
 import LoginPage from "./Authentication/Login/LoginPage";
 import RegisterPage from "./Authentication/SignUp/RegisterPage"
-import ForgotPassword from "./ForgotPassword/ViewForgotPassword";
+import ForgotPassword from "./View /ForgotPassword/ViewForgotPassword";
 import AdminStudentPage from "./View /ViewAdmin/AdminStudentPage/AdminStudentPage";
 import AdminSemesterPage from "./View /ViewAdmin/Semesters/AdminSemesterPage";
 import AdminTeachersPage from "./View /ViewAdmin/AdminTeachersPage/AdminTeachersPage";
@@ -17,6 +17,8 @@ import ViewParent from "./View /ViewParent/ViewParent";
 import ParentPayment from "./View /ViewParent/ParentPayment";
 import ViewStudent from "./View /ViewStudent/ViewStudent";
 import TuitionFeeNotification from "./View /ViewAdmin/Tuition /TuitionFeeNotification /TuitionFeeNotification";
+import OrderDetail from "./View /Payment/OrderDetail";
+import PaymentDetailsPage from "./View /Payment/PaymentDetailsPage";
 
 function App() {
   return (
@@ -42,8 +44,9 @@ function App() {
 
         <Route path="/parent/viewscore" element={< ViewParent/>} />
         <Route path="/parent/payment" element={< ParentPayment/>} />
-
         <Route path="/student/viewscore" element={< ViewStudent/>} />
+
+        <Route path="/order-detail" element={<PaymentDetailsPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -16,6 +16,7 @@ const userApi = axios.create({
     },
 });
 
+
 let refreshingTokenPromise = null;
 
 // Interceptor to handle token refresh
@@ -129,24 +130,57 @@ export const getTuitionFeeNotification = async (semesterType, academicYear) => {
     }
 };
 
-// React code example
-export const createPayment = async (paymentRequest) => {
-    const response = await fetch("/Parent/CreatePayment", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(paymentRequest),
-    });
 
-    const data = await response.json();
-
-    if (data.success) {
-        // Điều hướng người dùng đến trang thanh toán MoMo
-        window.location.href = data.payUrl;
-    } else {
-        // Hiển thị thông báo lỗi
-        alert(data.message);
+export const getOrderDetails = async (orderId) => {
+    try {
+        const response = await userApi.get(`/getorders/${orderId}`);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || "Failed to fetch order details.");
     }
 };
+export const getPaymentDetails = async (orderId) => {
+    const response = await userApi.get(`/Orders/GetOrderById/?orderId=${orderId}`);
+    if (!response.ok) {
+        throw new Error("Failed to fetch payment details");
+    }
+    return response.json();
+};
+
+
+
+// React code example
+export const createPayment = async (paymentRequest) => {
+    try {
+        const response = await userApi.post("/Parent/CreatePayment", paymentRequest);
+
+        // Extract data from the response
+        const data = response.data;
+        console.log('Payment created successfully:', data);
+
+        if (data.success) {
+            console.log("Payment URL received:", data.payUrl);
+
+            // Redirect the user to the MoMo payment page
+            window.location.href = data.payUrl;
+        } else {
+            console.error("Payment creation failed:", data.message || "Unknown error");
+            alert(data.message || "Failed to create payment.");
+        }
+    } catch (error) {
+        console.error("Error during payment creation:", error);
+
+        if (error.response) {
+            // Server responded with an error status code
+            console.error("Server error:", error.response.data);
+            alert(error.response.data.message || "Failed to create payment.");
+        } else {
+            // Network error or request did not reach the server
+            console.error("Network error:", error.message);
+            alert("Network error. Please try again later.");
+        }
+    }
+};
+
+
 

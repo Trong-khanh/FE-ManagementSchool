@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { getTuitionFeeNotification,createPayment } from "../../API /ParentAPI";
 import "./ParentPayment.css";
 import NavBarParent from "../NavBarParent";
+import {useNavigate} from "react-router-dom";
 
 const GetParentTuitionFeeNotification = () => {
     const [fetchSemesterType, setFetchSemesterType] = useState("Semester1");
@@ -11,7 +12,7 @@ const GetParentTuitionFeeNotification = () => {
     const [error, setError] = useState("");
     const [noDataMessage, setNoDataMessage] = useState("");
     const [paymentInitiated, setPaymentInitiated] = useState(false); // Trạng thái thanh toán
-
+    const navigate = useNavigate();
     // Hàm lấy thông báo học phí
     const handleGetNotification = async () => {
         setLoading(true);
@@ -26,6 +27,7 @@ const GetParentTuitionFeeNotification = () => {
 
             // Kiểm tra nếu không có dữ liệu trả về
             if (data && Object.keys(data).length === 0) {
+
                 setNoDataMessage("No tuition fee notifications found for the selected semester and academic year.");
             } else {
                 // Nếu có dữ liệu, lưu vào state
@@ -51,12 +53,18 @@ const GetParentTuitionFeeNotification = () => {
     // Hàm xử lý thanh toán với MoMo
     const handlePayWithMoMo = async () => {
         try {
+            const paymentRequest = {
+                ...tuitionFeeNotification,
+                orderId: `order-${Date.now()}`, // Example hardcoded orderId
+            };
+
             // Gọi API thanh toán học phí với MoMo
-            const response = await createPayment(tuitionFeeNotification);
+            const response = await createPayment(paymentRequest);
 
             // Xử lý kết quả sau khi thanh toán thành công
             if (response.status === 200) {
                 alert("Thanh toán học phí thành công!");
+                navigate(`/order-detail/${paymentRequest.orderId}`);
             }
         } catch (error) {
             alert("Lỗi khi thanh toán: " + error.message);

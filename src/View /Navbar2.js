@@ -66,12 +66,12 @@ function NavBar({ searchQuery, onSearchChange }) {
     }
   };
   return (
-    <AppBar
-      position="static"
-      sx={{
-        background: "linear-gradient(to left top, #fc6c8f, #ff2ced, #ffb86c)",
-      }}
-    >
+      <AppBar
+          position="static"
+          sx={{
+            backgroundColor: "#0066FF",
+          }}
+      >
       <Toolbar>
         <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
           Student Management
