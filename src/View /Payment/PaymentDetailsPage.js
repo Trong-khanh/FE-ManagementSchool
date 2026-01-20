@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { getPaymentDetails } from "../../API /ParentAPI"; // Adjust the API method accordingly
+import React from "react";
+// import { useParams } from "react-router-dom";
+// import { getPaymentDetails } from "../../API /ParentAPI"; // Adjust the API method accordingly
 
 const PaymentDetailsPage = () => {
     // const { orderId } = useParams(); // Get the orderId from the URL

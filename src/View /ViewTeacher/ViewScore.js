@@ -7,7 +7,6 @@ import {
   calculateSemesterAverage,
   getSemesterAverageForStudent,
 } from "../../API /TeacherAPI";
-import "./ViewScore.css";
 import Navbar2 from "../Navbar2";
 import {
   Dialog,
@@ -22,7 +21,21 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Container,
+  Paper,
+  Typography,
+  Grid,
+  Card,
+  CardContent,
+  TableContainer,
+  Alert,
+  IconButton,
+  Tooltip
 } from "@mui/material";
+import AddIcon from '@mui/icons-material/Add';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import CalculateIcon from '@mui/icons-material/Calculate';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const ViewScore = () => {
   const [semesters, setSemesters] = useState([]);
@@ -51,7 +64,6 @@ const ViewScore = () => {
   });
   const [selectedSemester, setSelectedSemester] = useState("");
   const [selectedSemesterForView, setSelectedSemesterForView] = useState("");
-  const [calculatedAverage, setCalculatedAverage] = useState(null);
   const [missingScoresMessage, setMissingScoresMessage] = useState("");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
@@ -79,11 +91,9 @@ const ViewScore = () => {
     setNotificationType(type);
     setNotificationOpen(true);
   };
-  const handleAddScore = async () => {
-    // Use the selectedSemester instead of scoreData.semesterId
-    const { scoreValue, examType } = scoreData;
 
-    // Use selectedSemester for semesterId
+  const handleAddScore = async () => {
+    const { scoreValue, examType } = scoreData;
     const semesterId = selectedSemester;
 
     if (!semesterId || !scoreValue || !examType) {
@@ -119,8 +129,6 @@ const ViewScore = () => {
         examType: examTypeValue,
       };
 
-      console.log("Score Entry being sent to backend:", scoreEntry);
-
       await addScore(scoreEntry);
       showNotification("Score added successfully", "success");
       resetScoreData();
@@ -135,20 +143,15 @@ const ViewScore = () => {
 
   const handleViewScores = async (student) => {
     try {
-      // Get the selected subjectId and semesterId from the student's data
       const subjectId = student.subjectId;
       const semesterId = selectedSemester || null;
-
-      // Make the API call with query parameters
       const scores = await getScoresForStudent(student.studentId, subjectId, semesterId);
 
-      // Map backend response to frontend format
       const semesterMap = semesters.reduce((map, semester) => {
         map[semester.semesterId] = semester.semesterType;
         return map;
       }, {});
 
-      // Map exam types
       const examTypeNames = {
         0: "Test When Class Begins",
         1: "Fifteen Minutes Test",
@@ -197,15 +200,13 @@ const ViewScore = () => {
           }
         });
         setMissingScoresMessage(`Missing exam type(s): ${missingLabels.join(", ")}`);
-        setCalculatedAverage(null);
         return;
       }
 
-      const average = await calculateSemesterAverage(
+      await calculateSemesterAverage(
           currentStudent.studentId,
           selectedSemester
       );
-      setCalculatedAverage(average);
       showNotification("Semester average calculated successfully", "success");
       setMissingScoresMessage("");
     } catch (error) {
@@ -238,10 +239,8 @@ const ViewScore = () => {
 
   const handleOpenViewSemesterDialog = async (student) => {
     try {
-      // Immediately fetch semester average when dialog opens
       const average = await getSemesterAverageForStudent(
           student.studentId,
-          // Default to first semester if multiple exist
           semesters.length > 0 ? semesters[0].semesterId : null
       );
 
@@ -255,6 +254,7 @@ const ViewScore = () => {
       );
     }
   };
+
   const handleCloseViewSemesterDialog = () => {
     setOpenViewSemesterDialog(false);
     setSelectedSemesterForView("");
@@ -289,7 +289,6 @@ const ViewScore = () => {
 
   const handleOpenCalculateDialog = (student) => {
     setCurrentStudent(student);
-    setCalculatedAverage(null);
     setMissingScoresMessage("");
     setOpenCalculateDialog(true);
   };
@@ -309,291 +308,262 @@ const ViewScore = () => {
     ...new Set(assignedClasses.map((classInfo) => classInfo.className)),
   ];
 
-  const tableStyles = {
-    width: "100%",
-    borderCollapse: "collapse",
-    margin: "25px 0",
-    fontSize: "18px",
-    textAlign: "left",
-    border: "1px solid #dddddd",
-  };
-
-  const thTdStyles = {
-    padding: "12px 15px",
-    border: "1px solid #dddddd",
-  };
-
   return (
-      <div>
-        <Navbar2 />
-        <div style={{ padding: "20px" }}>
-          <h2
-              style={{
-                fontSize: "1.5rem",
-                fontWeight: "bold",
-                marginBottom: "24px",
-              }}
-          >
-            List Students
-          </h2>
-          {error && <div style={{ color: "red" }}>{error}</div>}
-          {successMessage && (
-              <div style={{ color: "green", marginBottom: "10px" }}>
-                {successMessage}
-              </div>
-          )}
-          {missingScoresMessage && (
-              <div style={{ color: "red" }}>{missingScoresMessage}</div>
-          )}
+    <div>
+      <Navbar2 />
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h4" component="h2" gutterBottom color="primary">
+                  Student List
+                </Typography>
+                
+                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {successMessage && <Alert severity="success" sx={{ mb: 2 }}>{successMessage}</Alert>}
+                {missingScoresMessage && <Alert severity="warning" sx={{ mb: 2 }}>{missingScoresMessage}</Alert>}
 
-          {classOptions.length > 0 ? (
-              <div>
-                <label htmlFor="class-select">Select Class: </label>
-                <select
-                    id="class-select"
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                >
-                  <option value="">All Classes</option>
-                  {classOptions.map((className, index) => (
-                      <option key={index} value={className}>
-                        {className}
-                      </option>
-                  ))}
-                </select>
-              </div>
-          ) : (
-              <p>No classes available</p>
-          )}
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6} md={4}>
+                    <TextField
+                      select
+                      label="Select Class"
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                      fullWidth
+                      variant="outlined"
+                    >
+                      <MenuItem value="">
+                        <em>All Classes</em>
+                      </MenuItem>
+                      {classOptions.map((className, index) => (
+                        <MenuItem key={index} value={className}>
+                          {className}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  </Grid>
+                </Grid>
 
-          {loading ? (
-              <p>Loading...</p>
-          ) : (
-              <div>
-                <h3>Student's Score</h3>
-                <table style={tableStyles}>
-                  <thead>
-                  <tr>
-                    <th style={thTdStyles}>Student Full Name</th>
-                    <th style={thTdStyles}>Class Name</th>
-                    <th style={thTdStyles}>Actions</th>
-                  </tr>
-                  </thead>
-                  <tbody>
-                  {filteredClasses.map((classInfo, index) => (
-                      <tr key={index}>
-                        <td style={thTdStyles}>{classInfo.studentFullName}</td>
-                        <td style={thTdStyles}>{classInfo.className}</td>
-                        <td style={thTdStyles}>
-                          <button onClick={() => handleOpenDialog(classInfo)}>
-                            Add Score
-                          </button>
-                          <button onClick={() => handleViewScores(classInfo)}>
-                            View Scores
-                          </button>
-                          <button
-                              onClick={() => handleOpenCalculateDialog(classInfo)}
+                {loading ? (
+                  <Typography>Loading...</Typography>
+                ) : (
+                  <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0' }}>
+                    <Table sx={{ minWidth: 650 }} aria-label="student table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Student Name</TableCell>
+                          <TableCell>Class</TableCell>
+                          <TableCell align="right">Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {filteredClasses.map((classInfo, index) => (
+                          <TableRow
+                            key={index}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                           >
-                            Calculate Average
-                          </button>
-                          <button
-                              onClick={() => handleOpenViewSemesterDialog(classInfo)}
-                          >
-                            View Semester Average
-                          </button>
-                        </td>
-                      </tr>
-                  ))}
-                  </tbody>
-                </table>
-              </div>
-          )}
+                            <TableCell component="th" scope="row">
+                              {classInfo.studentFullName}
+                            </TableCell>
+                            <TableCell>{classInfo.className}</TableCell>
+                            <TableCell align="right">
+                              <Tooltip title="Add Score">
+                                <IconButton color="primary" onClick={() => handleOpenDialog(classInfo)}>
+                                  <AddIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="View Scores">
+                                <IconButton color="info" onClick={() => handleViewScores(classInfo)}>
+                                  <VisibilityIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Calculate Average">
+                                <IconButton color="secondary" onClick={() => handleOpenCalculateDialog(classInfo)}>
+                                  <CalculateIcon />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="View Semester Average">
+                                <IconButton color="success" onClick={() => handleOpenViewSemesterDialog(classInfo)}>
+                                  <AssessmentIcon />
+                                </IconButton>
+                              </Tooltip>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
 
-          {/* Dialog for Adding Scores */}
-          <Dialog open={openDialog} onClose={handleCloseDialog}>
-            <DialogTitle>Add Score</DialogTitle>
-            <DialogContent>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {/* Dialog for Adding Scores */}
+        <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth="sm">
+          <DialogTitle>Add Score</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
                 <TextField
-                    label="Score"
-                    type="number"
-                    value={scoreData.scoreValue}
-                    onChange={(e) =>
-                        setScoreData({ ...scoreData, scoreValue: e.target.value })
-                    }
-                    fullWidth
-                    error={
-                        scoreData.scoreValue !== "" &&
-                        (scoreData.scoreValue < 0 || scoreData.scoreValue > 10)
-                    }
-                    helperText="Score must be between 0 and 10"
+                  label="Score"
+                  type="number"
+                  value={scoreData.scoreValue}
+                  onChange={(e) => setScoreData({ ...scoreData, scoreValue: e.target.value })}
+                  fullWidth
+                  error={scoreData.scoreValue !== "" && (scoreData.scoreValue < 0 || scoreData.scoreValue > 10)}
+                  helperText="Score must be between 0 and 10"
                 />
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
-                    label="Exam Type"
-                    select
-                    value={scoreData.examType}
-                    onChange={(e) => {
-                      setScoreData({ ...scoreData, examType: e.target.value });
-                    }}
-                    fullWidth
+                  label="Exam Type"
+                  select
+                  value={scoreData.examType}
+                  onChange={(e) => setScoreData({ ...scoreData, examType: e.target.value })}
+                  fullWidth
                 >
                   {examTypes.map((type) => (
-                      <MenuItem key={type.value} value={type.value}>
-                        {type.label}
-                      </MenuItem>
+                    <MenuItem key={type.value} value={type.value}>
+                      {type.label}
+                    </MenuItem>
                   ))}
                 </TextField>
-
-
+              </Grid>
+              <Grid item xs={12}>
                 <TextField
-                    label="Select Semester"
-                    select
-                    fullWidth
-                    value={selectedSemester}
-                    onChange={(e) => setSelectedSemester(e.target.value)}
-                >
-                  {semesters.map((semester) => (
-                      <MenuItem key={semester.semesterId} value={semester.semesterId}>
-                        {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
-                      </MenuItem>
-                  ))}
-                </TextField>
-              </div>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDialog} color="secondary">
-                Cancel
-              </Button>
-              <Button onClick={handleAddScore} color="primary">
-                Add/Edit Score
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Dialog for Viewing Scores */}
-          <Dialog open={openScoreDialog} onClose={handleCloseScoreDialog}>
-            <DialogTitle>Student Scores</DialogTitle>
-            <DialogContent>
-              {studentScores.length > 0 ? (
-                  <Table style={tableStyles}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell style={thTdStyles}>Semester Type</TableCell>
-                        <TableCell style={thTdStyles}>Score</TableCell>
-                        <TableCell style={thTdStyles}>Exam Type</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {studentScores.map((score, index) => (
-                          <TableRow key={index}>
-                            <TableCell style={thTdStyles}>
-                              {score.semesterType}
-                            </TableCell>
-                            <TableCell style={thTdStyles}>
-                              {score.scoreValue}
-                            </TableCell>
-                            <TableCell style={thTdStyles}>{score.examType}</TableCell>
-                          </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-              ) : (
-                  <p>No scores available for this student.</p>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseScoreDialog} color="primary">
-                Close
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Dialog for Calculating Average */}
-          <Dialog open={openCalculateDialog} onClose={handleCloseCalculateDialog}>
-            <DialogTitle>Calculate Semester Average</DialogTitle>
-            <DialogContent>
-              <TextField
                   label="Select Semester"
                   select
                   fullWidth
                   value={selectedSemester}
                   onChange={(e) => setSelectedSemester(e.target.value)}
-              >
-                {semesters.map((semester) => (
+                >
+                  {semesters.map((semester) => (
                     <MenuItem key={semester.semesterId} value={semester.semesterId}>
                       {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
                     </MenuItem>
-                ))}
-              </TextField>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseCalculateDialog} color="secondary">
-                Close
-              </Button>
-              <Button
-                  onClick={handleCalculateAverage}
-                  color="primary"
-                  disabled={!selectedSemester}
-              >
-                Calculate
-              </Button>
-            </DialogActions>
-          </Dialog>
+                  ))}
+                </TextField>
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog} color="inherit">Cancel</Button>
+            <Button onClick={handleAddScore} variant="contained" color="primary">Add Score</Button>
+          </DialogActions>
+        </Dialog>
 
-          {/* Dialog for Viewing Semester Average */}
-          <Dialog
-              open={openViewSemesterDialog}
-              onClose={handleCloseViewSemesterDialog}
-          >
-            <DialogTitle>View Semester Average</DialogTitle>
-            <DialogContent>
-              {semesterAverageScore ? (
-                  <div>
-                    <p>
-                      Semester Average 1:{" "}
-                      {semesterAverageScore.semesterAverage1 || "Not yet available"}
-                    </p>
-                    <p>
-                      Semester Average 2:{" "}
-                      {semesterAverageScore.semesterAverage2 || "Not yet available"}
-                    </p>
+        {/* Dialog for Viewing Scores */}
+        <Dialog open={openScoreDialog} onClose={handleCloseScoreDialog} fullWidth maxWidth="md">
+          <DialogTitle>Student Scores</DialogTitle>
+          <DialogContent>
+            {studentScores.length > 0 ? (
+              <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e0e0e0', mt: 2 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Semester</TableCell>
+                      <TableCell>Score</TableCell>
+                      <TableCell>Exam Type</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {studentScores.map((score, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{score.semesterType}</TableCell>
+                        <TableCell>{score.scoreValue}</TableCell>
+                        <TableCell>{score.examType}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography sx={{ mt: 2 }}>No scores available for this student.</Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseScoreDialog} color="primary">Close</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for Calculating Average */}
+        <Dialog open={openCalculateDialog} onClose={handleCloseCalculateDialog} fullWidth maxWidth="sm">
+          <DialogTitle>Calculate Semester Average</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+               <Grid item xs={12}>
+                <TextField
+                  label="Select Semester"
+                  select
+                  fullWidth
+                  value={selectedSemester}
+                  onChange={(e) => setSelectedSemester(e.target.value)}
+                >
+                  {semesters.map((semester) => (
+                    <MenuItem key={semester.semesterId} value={semester.semesterId}>
+                      {semester.semesterType === "Semester1" ? "Semester 1" : "Semester 2"}
+                    </MenuItem>
+                  ))}
+                </TextField>
+               </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseCalculateDialog} color="inherit">Close</Button>
+            <Button onClick={handleCalculateAverage} variant="contained" color="primary" disabled={!selectedSemester}>
+              Calculate
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Dialog for Viewing Semester Average */}
+        <Dialog open={openViewSemesterDialog} onClose={handleCloseViewSemesterDialog} fullWidth maxWidth="sm">
+          <DialogTitle>View Semester Average</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={12}>
+                 {semesterAverageScore ? (
+                  <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+                    <Typography variant="body1" gutterBottom>
+                      <strong>Semester 1:</strong> {semesterAverageScore.semesterAverage1 || "Not yet available"}
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                      <strong>Semester 2:</strong> {semesterAverageScore.semesterAverage2 || "Not yet available"}
+                    </Typography>
                     {semesterAverageScore.annualAverage && (
-                        <p>Annual Average: {semesterAverageScore.annualAverage}</p>
+                      <Typography variant="h6" color="primary" sx={{ mt: 2 }}>
+                        Annual Average: {semesterAverageScore.annualAverage}
+                      </Typography>
                     )}
-                  </div>
-              ) : (
-                  <p>Loading semester averages...</p>
-              )}
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseViewSemesterDialog} color="secondary">
-                Close
-              </Button>
-              <Button
-                  onClick={handleViewYearAverage}
-                  color="primary"
-                  disabled={!selectedSemesterForView}
-              >
-              </Button>
-            </DialogActions>
-          </Dialog>
+                  </Paper>
+                ) : (
+                  <Typography>Loading semester averages...</Typography>
+                )}
+              </Grid>
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseViewSemesterDialog} color="primary">Close</Button>
+          </DialogActions>
+        </Dialog>
 
-
-          <Dialog open={notificationOpen} onClose={() => setNotificationOpen(false)}>
-            <DialogTitle>{notificationType === "error" ? "Error" : "Success"}</DialogTitle>
-
-            <DialogContent>
-              <p>{notificationMessage}</p>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setNotificationOpen(false)} color="primary">
-                OK
-              </Button>
-            </DialogActions>
-          </Dialog>
-
-        </div>
-      </div>
+        {/* Notification Dialog */}
+        <Dialog open={notificationOpen} onClose={() => setNotificationOpen(false)}>
+          <DialogTitle sx={{ color: notificationType === "error" ? "error.main" : "success.main" }}>
+            {notificationType === "error" ? "Error" : "Success"}
+          </DialogTitle>
+          <DialogContent>
+            <Typography>{notificationMessage}</Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setNotificationOpen(false)} color="primary">OK</Button>
+          </DialogActions>
+        </Dialog>
+      </Container>
+    </div>
   );
 };
 
