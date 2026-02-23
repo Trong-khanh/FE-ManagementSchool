@@ -18,6 +18,40 @@ const userApi = axios.create({
 
 let refreshingTokenPromise = null;
 
+const getApiErrorMessage = (error, fallbackMessage) => {
+    const status = error?.response?.status;
+    const data = error?.response?.data;
+
+    if (typeof data === 'string' && data.trim()) {
+        return data;
+    }
+
+    if (data?.message) {
+        return data.message;
+    }
+
+    if (Array.isArray(data?.errors) && data.errors.length > 0) {
+        return data.errors[0];
+    }
+
+    if (data?.errors && typeof data.errors === 'object') {
+        const firstError = Object.values(data.errors).flat().find(Boolean);
+        if (firstError) {
+            return firstError;
+        }
+    }
+
+    if (status >= 500) {
+        return `Server error (${status}). Please try again later.`;
+    }
+
+    if (status) {
+        return `${fallbackMessage} (HTTP ${status})`;
+    }
+
+    return error?.message || fallbackMessage;
+};
+
 const attachAuthToken = (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
@@ -93,11 +127,7 @@ const login = async (credentials) => {
         return response.data;
     } catch (error) {
         console.error('Error:', error);
-        if (error.response) {
-            throw new Error(error.response?.data?.message || "An error occurred during the login process.");
-        } else {
-            throw new Error("A network or unknown error occurred during the login process.");
-        }
+        throw new Error(getApiErrorMessage(error, "An error occurred during the login process."));
     }
 };
 
@@ -110,15 +140,7 @@ const register = async (userData, role) => {
         return response.data;
     } catch (error) {
         console.error('Error during registration:', error.response || error.message || error);
-
-        if (error.response) {
-            console.error('Error response data:', error.response.data);
-            console.error('Error response status:', error.response.status);
-            console.error('Error response headers:', error.response.headers);
-            throw new Error(error.response?.data?.message || "An error occurred during the registration process.");
-        } else {
-            throw new Error("A network or unknown error occurred during the registration process.");
-        }
+        throw new Error(getApiErrorMessage(error, "An error occurred during the registration process."));
     }
 };
 

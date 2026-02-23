@@ -12,33 +12,54 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import MenuItem from '@mui/material/MenuItem';
+import { useNavigate } from 'react-router-dom';
 import { register } from "../Login/CallAPILogin"; // Đảm bảo bạn đã có API đăng ký
 
 const defaultTheme = createTheme();
+const availableRoles = ['Student', 'Parent', 'Teacher', 'Admin'];
 
 export default function RegisterPage() {
-  const [role, setRole] = useState(''); // Trạng thái để lưu vai trò của người dùng
+  const navigate = useNavigate();
+  const [role, setRole] = useState('Student'); // Trạng thái để lưu vai trò của người dùng
   const [userName, setUserName] = useState(''); // Trạng thái để lưu tên người dùng
   const [errorMessage, setErrorMessage] = useState(''); // Để hiển thị thông báo lỗi nếu có
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (event) => {
     event.preventDefault(); // Ngăn chặn hành vi mặc định của form
+    setErrorMessage('');
+    setSuccessMessage('');
+    setIsSubmitting(true);
+
     const data = new FormData(event.currentTarget);
     const userData = {
-      userName: data.get('userName'),
-      email: data.get('email'),
-      password: data.get('password'),
+      userName: (data.get('userName') || '').toString().trim(),
+      email: (data.get('email') || '').toString().trim(),
+      password: (data.get('password') || '').toString(),
     };
-    const selectedRole = data.get('role');
+    const selectedRole = (data.get('role') || '').toString().trim();
+
+    if (!selectedRole) {
+      setErrorMessage('Role is required.');
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
       // Gọi API đăng ký với userData và selectedRole
       const response = await register(userData, selectedRole);
       console.log('User registered successfully:', response);
-      // Xử lý đăng ký thành công (ví dụ: chuyển hướng đến trang đăng nhập)
+      setSuccessMessage('Account created. Please check your email to confirm your account, then sign in.');
+      setTimeout(() => {
+        navigate('/login');
+      }, 1200);
     } catch (error) {
       console.error('Error registering user:', error);
-      setErrorMessage("Error registering user, please try again."); // Hiển thị thông báo lỗi
+      setErrorMessage(error.message || "Error registering user, please try again."); // Hiển thị thông báo lỗi
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -69,6 +90,7 @@ export default function RegisterPage() {
             Sign up
           </Typography>
           {errorMessage && <div style={{ color: 'red', marginBottom: '10px' }}>{errorMessage}</div>} {/* Hiển thị thông báo lỗi nếu có */}
+          {successMessage && <div style={{ color: '#2e7d32', marginBottom: '10px' }}>{successMessage}</div>}
           <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
@@ -109,13 +131,20 @@ export default function RegisterPage() {
                 <TextField
                   required
                   fullWidth
+                  select
                   id="role"
                   label="Role"
                   name="role"
                   autoComplete="role"
                   value={role}
                   onChange={handleRoleChange}
-                />
+                >
+                  {availableRoles.map((availableRole) => (
+                    <MenuItem key={availableRole} value={availableRole}>
+                      {availableRole}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
               <Grid item xs={12}>
                 <FormControlLabel
@@ -128,13 +157,14 @@ export default function RegisterPage() {
               type="submit"
               fullWidth
               variant="contained"
+              disabled={isSubmitting}
               sx={{ mt: 3, mb: 2 }}
             >
-              Sign Up
+              {isSubmitting ? 'Signing Up...' : 'Sign Up'}
             </Button>
             <Grid container justifyContent="flex-end">
               <Grid item>
-                <Link href="/Login" variant="body2">
+                <Link href="/login" variant="body2">
                   Already have an account? Sign in
                 </Link>
               </Grid>
