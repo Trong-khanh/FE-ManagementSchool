@@ -2,6 +2,43 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Environment Setup
+
+This project reads backend URL from `REACT_APP_API_URL`.
+
+- Local development (BE local):
+  1. Copy `.env.local.example` to `.env.local`
+  2. Keep `REACT_APP_API_URL=http://localhost:5000/api`
+- Production deployment (Render BE):
+  1. Set deploy environment variable:
+     `REACT_APP_API_URL=https://be-managementschool.onrender.com/api`
+  2. Do not commit real `.env` files.
+
+Available env templates:
+
+- `.env.local.example`
+- `.env.production.example`
+- `.env.example` (default production sample)
+
+## FE-BE Integration Notes
+
+- BE base URL: `https://be-managementschool.onrender.com`
+- API prefix: `/api`
+- Swagger: `https://be-managementschool.onrender.com/swagger`
+- Auth header: `Authorization: Bearer <accessToken>`
+- Render free tier may cold start (`~30-50s` first request).
+
+## Smoke Test Checklist
+
+1. Login: `POST /api/Authenticate/Login` returns token + role + user.
+2. Call one protected endpoint with bearer token (`200` expected).
+3. Force `401` and verify FE auto refreshes via `POST /api/Authenticate/refresh-token` with `{ Token }`.
+4. Parent payment: `POST /api/Parent/CreatePayment` returns `payUrl` and FE redirects.
+5. Order detail:
+   `GET /api/Orders/getorders/{orderId}` (primary)
+   `GET /api/Orders/GetOrderById?orderId=...` (fallback)
+6. Confirm browser has no CORS errors from FE domain.
+
 ## Available Scripts
 
 In the project directory, you can run:
