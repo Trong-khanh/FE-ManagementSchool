@@ -28,6 +28,7 @@ const SignInSide = () => {
     e.preventDefault();
   
     const credentials = {
+      userName: username,
       username,
       password,
       rememberMe,
@@ -37,11 +38,7 @@ const SignInSide = () => {
       const data = await login(credentials);
       console.log(data); // Xem cấu trúc phản hồi
   
-      if (data && data.accessToken) {
-        // Lưu thông tin vào local storage
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("userRole", data.role);
-  
+      if (data && (data.accessToken || data.AccessToken)) {
         const userRole = data.role; // Lấy vai trò từ phản hồi
   
         // Điều hướng dựa trên vai trò
@@ -60,8 +57,7 @@ const SignInSide = () => {
         setErrorMessage("Login was successful but no token was received.");
       }
     } catch (error) {
-      const errorMsg =
-        error.response?.data?.message || "An error occurred during login.";
+      const errorMsg = error.message || "An error occurred during login.";
       setErrorMessage(errorMsg);
     }
   };

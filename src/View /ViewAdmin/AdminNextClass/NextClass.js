@@ -35,10 +35,14 @@ const NextClass = () => {
 
         try {
             const response = await updateClassAndResetScores(requestPayload);
-            setMessage(response ? response : 'Class updated successfully!');
+            const successMessage =
+                typeof response === "string"
+                    ? response
+                    : response?.message || "Class updated successfully!";
+            setMessage(successMessage);
             setIsDialogOpen(true);
         } catch (error) {
-            setMessage(error?.response?.data || 'An error occurred, please try again!');
+            setMessage(error.message || 'An error occurred, please try again!');
             setIsDialogOpen(true);
         } finally {
             setIsLoading(false);

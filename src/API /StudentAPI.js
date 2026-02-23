@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseLink = "https://localhost:7201/api";
+const baseLink = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create an instance for authentication API
 const authApi = axios.create({
@@ -18,12 +18,24 @@ const userApi = axios.create({
 
 let refreshingTokenPromise = null;
 
+userApi.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 // Interceptor to handle token refresh
 userApi.interceptors.response.use((response) => response, async (error) => {
     const originalRequest = error.config;
 
     // Check for authentication error (401)
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
         if (!refreshingTokenPromise) {
             originalRequest._retry = true;
             refreshingTokenPromise = authApi
@@ -31,11 +43,11 @@ userApi.interceptors.response.use((response) => response, async (error) => {
                     Token: localStorage.getItem("refreshToken"),
                 })
                 .then((tokenResponse) => {
-                    if (tokenResponse.data && tokenResponse.data.accessToken) {
-                        localStorage.setItem("accessToken", tokenResponse.data.accessToken);
-                        console.log("Received new access token:", tokenResponse.data.accessToken);
-                        userApi.defaults.headers["Authorization"] = `Bearer ${tokenResponse.data.accessToken}`;
-                        originalRequest.headers["Authorization"] = `Bearer ${tokenResponse.data.accessToken}`;
+                    if (tokenResponse.data && (tokenResponse.data.accessToken || tokenResponse.data.AccessToken)) {
+                        localStorage.setItem("accessToken", (tokenResponse.data.accessToken || tokenResponse.data.AccessToken));
+                        console.log("Received new access token:", (tokenResponse.data.accessToken || tokenResponse.data.AccessToken));
+                        userApi.defaults.headers["Authorization"] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
+                        originalRequest.headers["Authorization"] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
                         return userApi(originalRequest);
                     }
                 })

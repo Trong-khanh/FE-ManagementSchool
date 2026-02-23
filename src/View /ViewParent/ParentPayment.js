@@ -61,11 +61,13 @@ const GetParentTuitionFeeNotification = () => {
             // Gọi API thanh toán học phí với MoMo
             const response = await createPayment(paymentRequest);
 
-            // Xử lý kết quả sau khi thanh toán thành công
-            if (response.status === 200) {
-                alert("Thanh toán học phí thành công!");
-                navigate(`/order-detail/${paymentRequest.orderId}`);
+            if (response?.payUrl) {
+                window.location.href = response.payUrl;
+                return;
             }
+
+            const resolvedOrderId = response?.orderId || paymentRequest.orderId;
+            navigate(`/order-detail/${resolvedOrderId}`);
         } catch (error) {
             alert("Lỗi khi thanh toán: " + error.message);
         }

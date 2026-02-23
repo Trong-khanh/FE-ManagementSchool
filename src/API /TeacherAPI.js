@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseLink = "https://localhost:7201/api";
+const baseLink = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create an instance for authentication API
 const authApi = axios.create({
@@ -18,12 +18,23 @@ const userApi = axios.create({
 
 let refreshingTokenPromise = null;
 
+const attachAuthToken = (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+};
+
+userApi.interceptors.request.use(attachAuthToken, (error) => Promise.reject(error));
+
 // Interceptor to handle token refresh
 userApi.interceptors.response.use((response) => response, async (error) => {
     const originalRequest = error.config;
 
     // Check for authentication error (401)
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
         if (!refreshingTokenPromise) {
             originalRequest._retry = true;
             refreshingTokenPromise = authApi
@@ -31,11 +42,11 @@ userApi.interceptors.response.use((response) => response, async (error) => {
                     Token: localStorage.getItem("refreshToken"),
                 })
                 .then((tokenResponse) => {
-                    if (tokenResponse.data && tokenResponse.data.accessToken) {
-                        localStorage.setItem("accessToken", tokenResponse.data.accessToken);
-                        console.log("Received new access token:", tokenResponse.data.accessToken);
-                        userApi.defaults.headers["Authorization"] = `Bearer ${tokenResponse.data.accessToken}`;
-                        originalRequest.headers["Authorization"] = `Bearer ${tokenResponse.data.accessToken}`;
+                    if (tokenResponse.data && (tokenResponse.data.accessToken || tokenResponse.data.AccessToken)) {
+                        localStorage.setItem("accessToken", (tokenResponse.data.accessToken || tokenResponse.data.AccessToken));
+                        console.log("Received new access token:", (tokenResponse.data.accessToken || tokenResponse.data.AccessToken));
+                        userApi.defaults.headers["Authorization"] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
+                        originalRequest.headers["Authorization"] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
                         return userApi(originalRequest);
                     }
                 })
@@ -62,12 +73,23 @@ const ViewAllSemesters = async () => {
 
 // Function to get students in assigned classes
 const AssignedClassesStudents = async (teacherEmail) => {
+    let resolvedTeacherEmail = teacherEmail || localStorage.getItem("teacherEmail");
+    if (!resolvedTeacherEmail) {
+        try {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+                const parsed = JSON.parse(storedUser);
+                resolvedTeacherEmail = parsed.email || parsed.userName || "";
+            }
+        } catch (_error) {
+            resolvedTeacherEmail = "";
+        }
+    }
+
     try {
         const response = await userApi.get("/Teacher/GetStudentsInAssignedClasses", {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            }, params: {
-                email: teacherEmail,
+            params: {
+                email: resolvedTeacherEmail,
             },
         });
         console.log("Assigned students data:", response.data);
@@ -99,10 +121,8 @@ const addScore = async (scoreData) => {
 // Function to get scores for a specific student
 const getScoresForStudent = async (studentId, subjectId = null, semesterId = null) => {
     try {
-        const response = await userApi.get(`/Teacher/ GetScoreStudent/${studentId}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            }, params: {
+        const response = await userApi.get(`/Teacher/GetScoreStudent/${studentId}`, {
+            params: {
                 subjectId, semesterId,
             },
         });
@@ -119,8 +139,6 @@ const calculateSemesterAverage = async (studentId, semesterId) => {
         const response = await userApi.get("/Teacher/CalculateSemesterAverage", {
             params: {
                 studentId, semesterId,
-            }, headers: {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
             },
         });
         return response.data.SemesterAverage;
@@ -132,11 +150,7 @@ const calculateSemesterAverage = async (studentId, semesterId) => {
 
 const getSemesterAverageForStudent = async (studentId, semesterId) => {
     try {
-        const response = await userApi.get(`/Teacher/GetSemesterAverage/${studentId}/semester/${semesterId}`, {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-            },
-        });
+        const response = await userApi.get(`/Teacher/GetSemesterAverage/${studentId}/semester/${semesterId}`);
         console.log("Semester average score for student:", response.data);
         return response.data;
     } catch (error) {

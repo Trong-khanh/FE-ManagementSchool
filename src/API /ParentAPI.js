@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseLink = "https://localhost:7201/api";
+const baseLink = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create an instance for authentication API
 const authApi = axios.create({
@@ -19,12 +19,24 @@ const userApi = axios.create({
 
 let refreshingTokenPromise = null;
 
+userApi.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+            config.headers = config.headers || {};
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 // Interceptor to handle token refresh
 userApi.interceptors.response.use((response) => response, async (error) => {
     const originalRequest = error.config;
 
     // Check for authentication error (401)
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
         if (!refreshingTokenPromise) {
             originalRequest._retry = true;
             refreshingTokenPromise = authApi
@@ -32,11 +44,11 @@ userApi.interceptors.response.use((response) => response, async (error) => {
                     Token: localStorage.getItem("refreshToken"),
                 })
                 .then((tokenResponse) => {
-                    if (tokenResponse.data && tokenResponse.data.accessToken) {
-                        localStorage.setItem("accessToken", tokenResponse.data.accessToken);
-                        console.log("Received new access token:", tokenResponse.data.accessToken);
-                        userApi.defaults.headers["Authorization"] = `Bearer ${tokenResponse.data.accessToken}`;
-                        originalRequest.headers["Authorization"] = `Bearer ${tokenResponse.data.accessToken}`;
+                    if (tokenResponse.data && (tokenResponse.data.accessToken || tokenResponse.data.AccessToken)) {
+                        localStorage.setItem("accessToken", (tokenResponse.data.accessToken || tokenResponse.data.AccessToken));
+                        console.log("Received new access token:", (tokenResponse.data.accessToken || tokenResponse.data.AccessToken));
+                        userApi.defaults.headers["Authorization"] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
+                        originalRequest.headers["Authorization"] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
                         return userApi(originalRequest);
                     }
                 })
@@ -133,18 +145,23 @@ export const getTuitionFeeNotification = async (semesterType, academicYear) => {
 
 export const getOrderDetails = async (orderId) => {
     try {
-        const response = await userApi.get(`/getorders/${orderId}`);
+        const response = await userApi.get(`/Orders/getorders/${orderId}`);
         return response.data;
     } catch (error) {
+        if (error.response?.status === 404) {
+            const legacy = await userApi.get(`/getorders/${orderId}`);
+            return legacy.data;
+        }
+        if (error.response?.status === 400) {
+            const fallback = await userApi.get(`/Orders/GetOrderById/?orderId=${orderId}`);
+            return fallback.data;
+        }
         throw new Error(error.response?.data?.message || "Failed to fetch order details.");
     }
 };
 export const getPaymentDetails = async (orderId) => {
     const response = await userApi.get(`/Orders/GetOrderById/?orderId=${orderId}`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch payment details");
-    }
-    return response.json();
+    return response.data;
 };
 
 
@@ -153,34 +170,12 @@ export const getPaymentDetails = async (orderId) => {
 export const createPayment = async (paymentRequest) => {
     try {
         const response = await userApi.post("/Parent/CreatePayment", paymentRequest);
-
-        // Extract data from the response
         const data = response.data;
         console.log('Payment created successfully:', data);
-
-        if (data.success) {
-            console.log("Payment URL received:", data.payUrl);
-
-            // Redirect the user to the MoMo payment page
-            window.location.href = data.payUrl;
-        } else {
-            console.error("Payment creation failed:", data.message || "Unknown error");
-            alert(data.message || "Failed to create payment.");
-        }
+        return data;
     } catch (error) {
         console.error("Error during payment creation:", error);
-
-        if (error.response) {
-            // Server responded with an error status code
-            console.error("Server error:", error.response.data);
-            alert(error.response.data.message || "Failed to create payment.");
-        } else {
-            // Network error or request did not reach the server
-            console.error("Network error:", error.message);
-            alert("Network error. Please try again later.");
-        }
+        throw new Error(error.response?.data?.message || "Failed to create payment.");
     }
 };
-
-
 

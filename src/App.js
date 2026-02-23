@@ -21,6 +21,7 @@ import ParentPayment from "./View /ViewParent/ParentPayment";
 import ViewStudent from "./View /ViewStudent/ViewStudent";
 import TuitionFeeNotification from "./View /ViewAdmin/Tuition /TuitionFeeNotification /TuitionFeeNotification";
 import PaymentDetailsPage from "./View /Payment/PaymentDetailsPage";
+import OrderDetail from "./View /Payment/OrderDetail";
 
 function App() {
   return (
@@ -51,6 +52,7 @@ function App() {
           <Route path="/student/viewscore" element={< ViewStudent/>} />
 
           <Route path="/order-detail" element={<PaymentDetailsPage />} />
+          <Route path="/order-detail/:orderId" element={<OrderDetail />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

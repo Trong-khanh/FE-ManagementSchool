@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseLink = "https://localhost:7201/api";
+const baseLink = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 const authApi = axios.create({
   baseURL: baseLink,
@@ -18,11 +18,23 @@ const adminApi = axios.create({
 
 let refreshingTokenPromise = null;
 
+adminApi.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 adminApi.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       if (!refreshingTokenPromise) {
         originalRequest._retry = true;
         refreshingTokenPromise = authApi
@@ -30,17 +42,17 @@ adminApi.interceptors.response.use(
             Token: localStorage.getItem("refreshToken"),
           })
           .then((tokenResponse) => {
-            if (tokenResponse.data && tokenResponse.data.accessToken) {
+            if (tokenResponse.data && (tokenResponse.data.accessToken || tokenResponse.data.AccessToken)) {
               localStorage.setItem(
                 "accessToken",
-                tokenResponse.data.accessToken
+                (tokenResponse.data.accessToken || tokenResponse.data.AccessToken)
               );
               adminApi.defaults.headers[
                 "Authorization"
-              ] = `Bearer ${tokenResponse.data.accessToken}`;
+              ] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
               originalRequest.headers[
                 "Authorization"
-              ] = `Bearer ${tokenResponse.data.accessToken}`;
+              ] = `Bearer ${(tokenResponse.data.accessToken || tokenResponse.data.AccessToken)}`;
               return adminApi(originalRequest);
             }
           })
